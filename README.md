@@ -2,6 +2,7 @@
 A tool to reduce ptx file size
 
 ABOUT
+================================================================================
 ptxzip is an application to shrink ptx file size by using following tricks.
 
 1) reduce position precision
@@ -41,6 +42,7 @@ ptxzip in.ptx out.ptx -s 2
 use 3 digit to store position and intensity, apply 2 x subsample.
 
 PTX FILE Format
+================================================================================
 Ptx format is a point cloud text format by Leica Geosystems LLC.
 Ptx format reference:
 http://paulbourke.net/dataformats/ptx/
