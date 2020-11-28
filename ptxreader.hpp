@@ -24,5 +24,5 @@ private:
   FILE* mFile;
   string mFilename;
   int mSubsample;
-  int mColumn, mWidth;
+
 };

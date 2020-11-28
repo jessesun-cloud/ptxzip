@@ -11,7 +11,7 @@ public:
   PtxWriter(const char* pFilename);
   ~PtxWriter();
   void Init(int posPrecision, int intensityPrecision, int subsample);
-  void WriteSize(int col, int width);
+  void WriteSize(int col, int rows);
   bool WriteLine(const char* pLine);
   bool IsOpen();
   bool WriteHeader(vector<string>& rHeaders);
@@ -23,6 +23,5 @@ private:
   FILE* mFile;
   string mFilename;
   int mPosPrecision, mIntensityPrecision, mSubsample;
-  int mColumn, mWidth;
   int mFormat;
 };
