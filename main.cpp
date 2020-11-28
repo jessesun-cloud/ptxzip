@@ -40,50 +40,6 @@ bool parseInput(int argc, char** argv)
   return true;
 }
 
-bool ProcessConvert(PtxReader& reader, PtxWriter& ptxwriter)
-{
-  int column, width;
-  if (false == reader.ReadSize(column, width))
-  { return true; }
-  if (column / subsample == 0 || width / subsample == 0)
-  { return false; }
-  ptxwriter.WriteSize(column / subsample, width / subsample);
-  vector<string> header;
-  reader.ReadHeader(header);
-  ptxwriter.WriteHeader(header);
-
-  const int ReportCount = 100;
-  bool ok = true;
-  for (int i = 0; i < column && ok; i++)
-  {
-    string line;
-    if (i % ReportCount == 0)
-    {
-      printf("%.2f%%\r", (float)i / column);
-    }
-    const int ReportCount = 100;
-    bool bSkip = (i % subsample) != 0;
-    for (int x = 0; x < width; x++)
-      if (reader.ReadLine(line))
-      {
-        if (bSkip)
-        { continue; }
-        if ((x % subsample) == 0)
-          if (false == ptxwriter.ProcessLine(line))
-          {
-            ok = false;
-            break;
-          }
-      }
-      else
-      {
-        ok = false;
-        break;
-      }
-  }
-  return ok;
-}
-
 void ProcessConvert()
 {
   PtxReader ptxReader(input.c_str());
@@ -102,7 +58,7 @@ void ProcessConvert()
   }
   while (ptxReader.HasMoredata())
   {
-    if (false == ProcessConvert(ptxReader, ptxwriter))
+    if (false == ptxReader.ProcessConvert(ptxwriter))
     {
       printf("failed to convert ptx file");
       break;

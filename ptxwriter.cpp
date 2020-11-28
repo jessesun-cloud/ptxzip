@@ -22,15 +22,13 @@ PtxWriter::Init(int posPrecision, int intensityPrecision, int subsample)
   mSubsample = subsample;
 }
 
-void PtxWriter::WriteSize(int col, int width)
+void PtxWriter::WriteSize(int cols, int rows)
 {
   mFormat = -1;
-  mColumn = col;
-  mWidth = width;
   char buffer[200];
-  sprintf(buffer, "%d", col);
+  sprintf(buffer, "%d", cols);
   WriteLine((buffer));
-  sprintf(buffer, "%d", width);
+  sprintf(buffer, "%d", rows);
   WriteLine((buffer));
 }
 
@@ -108,7 +106,7 @@ bool PtxWriter::AnalysisFormat(const string& rLine)
             mPosPrecision, mPosPrecision, mPosPrecision, mIntensityPrecision);
     strcpy_s(mFormatBufferZero, 200, "0 0 0 0.5");
   }
-  else if (mFormat >= 7)
+  else if (mFormat == 7)
   {
     sprintf(mFormatBuffer, "%%.%df %%.%df %%.%df %%.%df %%s %%s %%s",
             mPosPrecision, mPosPrecision, mPosPrecision, mIntensityPrecision);

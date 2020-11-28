@@ -26,18 +26,16 @@ PtxReader::Init(int subsample)
 }
 
 bool
-PtxReader::ReadSize(int& column, int& width)
+PtxReader::ReadSize(int& column, int& row)
 {
-  column = width = 0;
+  column = row = 0;
   mBuffer[0] = 0;
   fgets(mBuffer, MAXLINELENTH, mFile);
   sscanf(mBuffer, "%d", &column);
   mBuffer[0] = 0;
   fgets(mBuffer, MAXLINELENTH, mFile);
-  sscanf(mBuffer, "%d", &width);
-  mWidth = width;
-  mColumn = column;
-  return mWidth * mColumn != 0;
+  sscanf(mBuffer, "%d", &row);
+  return column * row != 0;
 }
 
 void PtxReader::RemoveEndCLn(std::string& str)
@@ -77,4 +75,54 @@ bool PtxReader::HasMoredata()
   if (mFile == NULL || feof(mFile))
   { return false; }
   return true;
+}
+
+bool PtxReader::ProcessConvert(PtxWriter& ptxwriter)
+{
+  int columns, rows;
+  if (false == ReadSize(columns, rows))
+  {
+    return true;
+  }
+  if (columns / mSubsample == 0 || rows / mSubsample == 0)
+  {
+    return false;
+  }
+  ptxwriter.WriteSize(columns / mSubsample, rows / mSubsample);
+  vector<string> header;
+  ReadHeader(header);
+  ptxwriter.WriteHeader(header);
+
+  const int ReportCount = 100;
+  bool ok = true;
+  for (int col = 0; col < columns && ok; col++)
+  {
+    string line;
+    if (col % ReportCount == 0)
+    {
+      printf("%.2f%%\r", (float)col / columns);
+    }
+    const int ReportCount = 100;
+    bool bSkipColumn = (col % mSubsample) != 0;
+    for (int x = 0; x < rows; x++)
+      if (ReadLine(line))
+      {
+        //skip column or row
+        if (bSkipColumn || (x % mSubsample) != 0)
+        {
+          continue;
+        }
+        if (false == ptxwriter.ProcessLine(line))
+        {
+          ok = false;
+          break;
+        }
+      }
+      else
+      {
+        ok = false;
+        break;
+      }
+  }
+  return ok;
 }
