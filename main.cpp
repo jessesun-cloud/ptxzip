@@ -1,9 +1,5 @@
 #include <inc/ptxreader.hpp>
 #include <inc/ptxwriter.hpp>
-#ifdef SUPPORT_E57
-#include <E57Format.h>
-#include <E57Exception.h>
-#endif
 
 std::string input, output;
 int posPrecision = 3, intensityPrecision = 3, subsample = 1;
