@@ -25,4 +25,5 @@ private:
   string mFilename;
   int mPosPrecision, mIntensityPrecision, mSubsample;
   int mFormat;
+  string mZeroString;
 };
