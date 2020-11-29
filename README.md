@@ -39,10 +39,12 @@ when value is N, output will keep 1 point for every N X N points of original poi
 
 for example
 ptxzip in.ptx out.ptx -p 4 -i 4
-use 4 digit to store position and intensity, don't do subsample.
+
+use 4 digit precision to store position and intensity, don't do subsample.
 
 ptxzip in.ptx out.ptx -s 2
-use 3 digit to store position and intensity, apply 2 x subsample.
+
+use 3 digit precision to store position and intensity, apply 2 x subsample.
 
 PTX FILE Format
 ================================================================================
