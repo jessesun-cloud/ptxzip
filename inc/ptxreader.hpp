@@ -18,11 +18,13 @@ public:
   bool HasMoredata();
   static void RemoveEndCrLn(std::string& str);
   bool ProcessConvert(PtxWriter& ptxwriter);
+  __int64 GetPointCount() { return mPointCount; }
+  int GetNumScan() { return mNumScan; }
 private:
   char mBuffer[MAXLINELENTH];
-  char mFormatBuffer[MAXLINELENTH];
   FILE* mFile;
   string mFilename;
   int mSubsample;
-
+  __int64 mPointCount;
+  int mNumScan;
 };

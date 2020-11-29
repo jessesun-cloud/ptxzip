@@ -40,7 +40,7 @@ bool parseInput(int argc, char** argv)
   return true;
 }
 
-void ProcessConvert()
+int ProcessConvert()
 {
   PtxReader ptxReader(input.c_str());
   PtxWriter ptxwriter(output.c_str());
@@ -49,12 +49,12 @@ void ProcessConvert()
   if (ptxwriter.IsOpen() == false)
   {
     printf("can not create file %s", output.c_str());
-    return;
+    return -3;
   }
   if (ptxReader.HasMoredata() == false)
   {
     printf("can not open file %s", input.c_str());
-    return;
+    return -2;
   }
   while (ptxReader.HasMoredata())
   {
@@ -64,13 +64,16 @@ void ProcessConvert()
       break;
     }
   }
+  printf("successfully convert %I64d points %d scan",
+         ptxReader.GetPointCount(), ptxReader.GetNumScan());
+  return ptxReader.GetNumScan() > 0;
 }
 
 int main(int argc, char** argv)
 {
   if (parseInput(argc, argv))
   {
-    ProcessConvert();
+    return ProcessConvert();
   }
-  return 0;
+  return -1;
 }

@@ -21,7 +21,8 @@ set(PUBLIC_HEADER_PATH "${CMAKE_SOURCE_DIR}/inc")
 
 #SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} /FORCE")
 SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} /DEBUG")
-add_executable(ptxzip "${PROJECT_SRCS}" "${PUBLIC_HEADERS}")
+add_executable(ptxzip WIN32 "${PROJECT_SRCS}" "${PUBLIC_HEADERS}")
+set_target_properties(ptxzip PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
 target_include_directories(ptxzip PUBLIC ${PUBLIC_HEADER_PATH})
 target_include_directories(ptxzip PUBLIC ${CMAKE_SOURCE_DIR})
 

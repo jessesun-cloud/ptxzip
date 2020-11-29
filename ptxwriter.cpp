@@ -65,21 +65,26 @@ bool PtxWriter::ProcessLine(const string& rInput)
                      &x, &y, &z, &i, r, 20, g, 20, b, 20);
   char buffer[MAXLINELENTH];
   const char* pOutput = buffer;
+  const char* pFormat = i == 0.5 ? mFormatBufferNoIntensity : mFormatBuffer;
+  if (num != mFormat)
+  { return false; }
   if (mFormat == 4)
   {
     if (!(x == 0 && y == 0 && z == 0))
     {
-      sprintf_s(buffer, BUFFERLENGTH, mFormatBuffer, x, y, z, i);
+      sprintf_s(buffer, BUFFERLENGTH, pFormat, x, y, z, i);
     }
     else
     {
       pOutput = "0 0 0 0.5";
     }
   }
-  else if (mFormat == 7)
+  else
   {
     if (!(x == 0 && y == 0 && z == 0))
-    { sprintf_s(buffer, BUFFERLENGTH, mFormatBuffer, x, y, z, i, r, g, b); }
+    {
+      sprintf_s(buffer, BUFFERLENGTH, pFormat, x, y, z, i, r, g, b);
+    }
     else
     {
       pOutput = "0 0 0 0.5 0 0 0";
@@ -96,21 +101,23 @@ bool PtxWriter::AnalysisFormat(const string& rLine)
     return mFormat;
   }
   float x, y, z, i;
-  //  int r, g, b;
-  int num = sscanf_s(rLine.c_str(), "%f %f %f %f %f %f %f", &x, &y, &z, &i, &x, &y, &z);
+  float r, g, b;
+  int num = sscanf_s(rLine.c_str(), "%f %f %f %f %f %f %f", &x, &y, &z, &i, &r, &g, &b);
   mFormat = num;
-  if (mFormat >= 7)
-  {
-    mFormat = 7;
-  }
   if (mFormat == 4)
   {
-    sprintf_s(mFormatBuffer, 200, "%%.%df %%.%df %%.%df %%.%df",
+    sprintf_s(mFormatBufferNoIntensity, BUFFERLENGTH, "%%.%df %%.%df %%.%df %%.%df",
+              mPosPrecision, mPosPrecision, mPosPrecision, 1);
+    sprintf_s(mFormatBuffer, BUFFERLENGTH, "%%.%df %%.%df %%.%df %%.%df",
               mPosPrecision, mPosPrecision, mPosPrecision, mIntensityPrecision);
   }
   else if (mFormat == 7)
   {
-    sprintf_s(mFormatBuffer, BUFFERLENGTH, "%%.%df %%.%df %%.%df %%.%df %%s %%s %%s",
+    sprintf_s(mFormatBufferNoIntensity, BUFFERLENGTH,
+              "%%.%df %%.%df %%.%df %%.%df %%s %%s %%s",
+              mPosPrecision, mPosPrecision, mPosPrecision, 1);
+    sprintf_s(mFormatBuffer, BUFFERLENGTH,
+              "%%.%df %%.%df %%.%df %%.%df %%s %%s %%s",
               mPosPrecision, mPosPrecision, mPosPrecision, mIntensityPrecision);
   }
   else

@@ -10,6 +10,8 @@ PtxReader::PtxReader(const char* pFilename)
   mSubsample = 1;
   mFilename = pFilename;
   fopen_s(&mFile, pFilename, "r+b");
+  mPointCount = 0;
+  mNumScan = 0;
 }
 
 PtxReader::~PtxReader()
@@ -35,6 +37,9 @@ PtxReader::ReadSize(int& column, int& row)
   mBuffer[0] = 0;
   fgets(mBuffer, MAXLINELENTH, mFile);
   row = atoi(mBuffer);
+  mPointCount += column * row;
+  if (column * row != 0)
+  { mNumScan++; }
   return column * row != 0;
 }
 

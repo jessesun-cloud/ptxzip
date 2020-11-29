@@ -20,6 +20,7 @@ public:
   bool AnalysisFormat(const string& rLine);
 private:
   char mFormatBuffer[BUFFERLENGTH];
+  char mFormatBufferNoIntensity[BUFFERLENGTH];
   FILE* mFile;
   string mFilename;
   int mPosPrecision, mIntensityPrecision, mSubsample;
