@@ -16,7 +16,7 @@ public:
   void ReadHeader(vector<string>& rHeader);
   bool ReadLine(std::string& rLine);
   bool HasMoredata();
-  static void RemoveEndCLn(std::string& str);
+  static void RemoveEndCrLn(std::string& str);
   bool ProcessConvert(PtxWriter& ptxwriter);
 private:
   char mBuffer[MAXLINELENTH];

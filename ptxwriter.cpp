@@ -5,13 +5,14 @@ PtxWriter::PtxWriter(const char* pFilename)
   mPosPrecision = 3;
   mIntensityPrecision = 3;
   mSubsample = 1;
-  mFile = fopen(pFilename, "w+b");
+  fopen_s(&mFile, pFilename, "w+b");
   mFormat = -1;
 }
 
 PtxWriter::~PtxWriter()
 {
-  fclose(mFile);
+  if (mFile)
+  { fclose(mFile); }
 }
 
 void
@@ -26,9 +27,9 @@ void PtxWriter::WriteSize(int cols, int rows)
 {
   mFormat = -1;
   char buffer[200];
-  sprintf(buffer, "%d", cols);
+  sprintf_s(buffer, 200, "%d", cols);
   WriteLine((buffer));
-  sprintf(buffer, "%d", rows);
+  sprintf_s(buffer, 200, "%d", rows);
   WriteLine((buffer));
 }
 
@@ -56,33 +57,35 @@ bool PtxWriter::ProcessLine(const string& rInput)
   AnalysisFormat(rInput);
   if (mFormat == 0)
   {
-    string str(rInput);
-    PtxReader::RemoveEndCLn(str);
-    WriteLine(str.c_str());
     return false;
   }
   float x, y, z, i;
   char r[20], g[20], b[20];
-  int num = sscanf(rInput.c_str(), "%f %f %f %f %s %s %s",
-                   &x, &y, &z, &i, r, g, b);
+  int num = sscanf_s(rInput.c_str(), "%f %f %f %f %s %s %s",
+                     &x, &y, &z, &i, r, 20, g, 20, b, 20);
   char buffer[MAXLINELENTH];
+  const char* pOutput = buffer;
   if (mFormat == 4)
   {
     if (!(x == 0 && y == 0 && z == 0))
     {
-      sprintf(buffer, mFormatBuffer, x, y, z, i);
+      sprintf_s(buffer, BUFFERLENGTH, mFormatBuffer, x, y, z, i);
     }
     else
-    { strcpy_s(buffer, MAXLINELENTH, mFormatBufferZero); }
+    {
+      pOutput = "0 0 0 0.5";
+    }
   }
   else if (mFormat == 7)
   {
     if (!(x == 0 && y == 0 && z == 0))
-    { sprintf(buffer, mFormatBuffer, x, y, z, i, r, g, b); }
+    { sprintf_s(buffer, BUFFERLENGTH, mFormatBuffer, x, y, z, i, r, g, b); }
     else
-    { strcpy_s(buffer, MAXLINELENTH, mFormatBufferZero); }
+    {
+      pOutput = "0 0 0 0.5 0 0 0";
+    }
   }
-  WriteLine(buffer);
+  WriteLine(pOutput);
   return true;
 }
 
@@ -94,7 +97,7 @@ bool PtxWriter::AnalysisFormat(const string& rLine)
   }
   float x, y, z, i;
   //  int r, g, b;
-  int num = sscanf(rLine.c_str(), "%f %f %f %f %f %f %f", &x, &y, &z, &i, &x, &y, &z);
+  int num = sscanf_s(rLine.c_str(), "%f %f %f %f %f %f %f", &x, &y, &z, &i, &x, &y, &z);
   mFormat = num;
   if (mFormat >= 7)
   {
@@ -102,15 +105,13 @@ bool PtxWriter::AnalysisFormat(const string& rLine)
   }
   if (mFormat == 4)
   {
-    sprintf(mFormatBuffer, "%%.%df %%.%df %%.%df %%.%df",
-            mPosPrecision, mPosPrecision, mPosPrecision, mIntensityPrecision);
-    strcpy_s(mFormatBufferZero, 200, "0 0 0 0.5");
+    sprintf_s(mFormatBuffer, 200, "%%.%df %%.%df %%.%df %%.%df",
+              mPosPrecision, mPosPrecision, mPosPrecision, mIntensityPrecision);
   }
   else if (mFormat == 7)
   {
-    sprintf(mFormatBuffer, "%%.%df %%.%df %%.%df %%.%df %%s %%s %%s",
-            mPosPrecision, mPosPrecision, mPosPrecision, mIntensityPrecision);
-    strcpy_s(mFormatBufferZero, 200, "0 0 0 0.5 0 0 0");
+    sprintf_s(mFormatBuffer, BUFFERLENGTH, "%%.%df %%.%df %%.%df %%.%df %%s %%s %%s",
+              mPosPrecision, mPosPrecision, mPosPrecision, mIntensityPrecision);
   }
   else
   { mFormat = 0; }//invalid format

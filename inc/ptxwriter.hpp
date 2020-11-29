@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 using namespace std;
+#define BUFFERLENGTH 200
 
 class PtxWriter
 {
@@ -18,8 +19,7 @@ public:
   bool ProcessLine(const string& rInput);
   bool AnalysisFormat(const string& rLine);
 private:
-  char mFormatBuffer[200];
-  char mFormatBufferZero[200];
+  char mFormatBuffer[BUFFERLENGTH];
   FILE* mFile;
   string mFilename;
   int mPosPrecision, mIntensityPrecision, mSubsample;

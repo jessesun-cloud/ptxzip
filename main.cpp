@@ -66,10 +66,11 @@ void ProcessConvert()
   }
 }
 
-void main(int argc, char** argv)
+int main(int argc, char** argv)
 {
   if (parseInput(argc, argv))
   {
     ProcessConvert();
   }
+  return 0;
 }

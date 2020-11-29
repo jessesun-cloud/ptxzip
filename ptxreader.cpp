@@ -9,7 +9,7 @@ PtxReader::PtxReader(const char* pFilename)
 {
   mSubsample = 1;
   mFilename = pFilename;
-  mFile = fopen(pFilename, "r+b");
+  fopen_s(&mFile, pFilename, "r+b");
 }
 
 PtxReader::~PtxReader()
@@ -31,14 +31,14 @@ PtxReader::ReadSize(int& column, int& row)
   column = row = 0;
   mBuffer[0] = 0;
   fgets(mBuffer, MAXLINELENTH, mFile);
-  sscanf(mBuffer, "%d", &column);
+  column = atoi(mBuffer);
   mBuffer[0] = 0;
   fgets(mBuffer, MAXLINELENTH, mFile);
-  sscanf(mBuffer, "%d", &row);
+  row = atoi(mBuffer);
   return column * row != 0;
 }
 
-void PtxReader::RemoveEndCLn(std::string& str)
+void PtxReader::RemoveEndCrLn(std::string& str)
 {
   std::string::iterator end_pos = std::remove(str.begin(), str.end(), '\r');
   str.erase(end_pos, str.end());
@@ -57,7 +57,7 @@ void PtxReader::ReadHeader(vector<string>& rHeader)
     if (fgets(mBuffer, MAXLINELENTH, mFile) != NULL)
     {
       string str(mBuffer);
-      RemoveEndCLn(str);
+      RemoveEndCrLn(str);
       rHeader.push_back(str);
     }
   }
