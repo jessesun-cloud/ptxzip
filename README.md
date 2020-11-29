@@ -6,6 +6,7 @@ ABOUT
 ptxzip is an application to shrink ptx file size by using following tricks.
 
 1) reduce position precision
+
 scanned data likely have precision above 1mm, it is not necessary to keep
 more than 3 digit after dot. for example:
 12.032272 -2.613480 -2.036392
@@ -13,6 +14,7 @@ can store as
 12.032 -2.613 -2.036
 
 2) reduce intensity precision
+
 intensity normally save as 6 digit precision float. sometime less precision is acceptable.
 for example
 0.156863
@@ -20,6 +22,7 @@ can store as
 0.157
 
 3) subsample
+
 for dense scan we maybe don't need all the detail data, therefor can apply subsample
 to reduce disk space
 
