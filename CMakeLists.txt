@@ -1,9 +1,10 @@
+cmake_minimum_required(VERSION 3.9)
 #ptxzip application
 #InitQt("Core;Widgets;LinguistTools;OpenGL")
 
 set(PUBLIC_HEADERS 
-  PtxReader.hpp
-  ptxWriter.hpp 
+  inc/PtxReader.hpp
+  inc/ptxWriter.hpp 
 )
 set(PROJECT_SRCS
   PtxReader.cpp
@@ -16,12 +17,13 @@ if (OPENMP_FOUND)
   set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
-set(PUBLIC_HEADER_PATH "${CMAKE_SOURCE_DIR}/ptxreader/inc")
-PrependPathToFiles("${PUBLIC_HEADER_PATH}" "${PUBLIC_HEADERS}" "PUBLIC_HEADERS")
+set(PUBLIC_HEADER_PATH "${CMAKE_SOURCE_DIR}/inc")
+
 SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} /FORCE")
 SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} /DEBUG")
-AddExecutable(ptxzip "${PROJECT_SRCS}" "${PUBLIC_HEADERS}")
+add_executable(ptxzip "${PROJECT_SRCS}" "${PUBLIC_HEADERS}")
 target_include_directories(ptxzip PUBLIC ${PUBLIC_HEADER_PATH})
+target_include_directories(ptxzip PUBLIC ${CMAKE_SOURCE_DIR})
 
 #target_include_directories(ptxzip PUBLIC ${Qt5Widgets_INCLUDES})
 #target_link_libraries(ptxzip PRIVATE Qt5::Widgets)
