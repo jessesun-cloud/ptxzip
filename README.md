@@ -32,7 +32,9 @@ usage:
 ptxzip inputfilename outputfilename -p PRECISION -s SAMPLERATE -i INTENSITY_PRECISION
 
 PRECISION, default be 3, is the precision we want to store position.
+
 INTENSITY_PRECISION, default be 3, is the precision we want to store intensity.
+
 SAMPLERATE, is the sub sample rate we want to apply.
 when value is 1 we don't apply subsample.
 when value is N, output will keep 1 point for every N X N points of original point cloud
