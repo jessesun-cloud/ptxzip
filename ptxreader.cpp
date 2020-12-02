@@ -21,12 +21,6 @@ PtxReader::~PtxReader()
   mFile = NULL;
 }
 
-void
-PtxReader::Init(int subsample)
-{
-  mSubsample = subsample;
-}
-
 bool
 PtxReader::ReadSize(int& column, int& row)
 {
@@ -82,8 +76,9 @@ bool PtxReader::HasMoredata()
   return true;
 }
 
-bool PtxReader::ProcessConvert(PtxWriter& ptxwriter)
+bool PtxReader::ProcessConvert(int subample, PtxWriter& ptxwriter)
 {
+  mSubsample = subample;
   int columns, rows;
   if (false == ReadSize(columns, rows))
   {

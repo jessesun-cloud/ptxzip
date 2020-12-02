@@ -44,7 +44,7 @@ int ProcessConvert()
 {
   PtxReader ptxReader(input.c_str());
   PtxWriter ptxwriter(output.c_str());
-  ptxReader.Init(subsample);
+
   ptxwriter.Init(posPrecision, intensityPrecision, subsample);
   if (ptxwriter.IsOpen() == false)
   {
@@ -58,7 +58,7 @@ int ProcessConvert()
   }
   while (ptxReader.HasMoredata())
   {
-    if (false == ptxReader.ProcessConvert(ptxwriter))
+    if (false == ptxReader.ProcessConvert(subsample, ptxwriter))
     {
       printf("failed to convert ptx file");
       break;
