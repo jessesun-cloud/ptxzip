@@ -13,12 +13,15 @@ public:
   ~PtxWriter();
   void Init(int posPrecision, int intensityPrecision, int subsample);
   void WriteSize(int col, int rows);
-  bool WriteLine(const char* pLine);
   bool IsOpen();
-  bool WriteHeader(vector<string>& rHeaders);
-  bool ProcessLine(const string& rInput);
-  bool AnalysisFormat(const string& rLine);
+  void WriteHeader(double scannerPos[12],  double ucs[16]);
+  int WritePoints(vector<float>& x, vector<float>& y, vector<float>& z,
+                  vector<float>& rIntensity, vector<int>& rgbColor);
+  bool WritePoint(float x, float y, float z, float i, int r, int g, int b);
+  void NextScan() { mFormat = -1; }
 private:
+  bool WriteLine(const char* pLine);
+  bool InitExportFormat();
   char mFormatBuffer[BUFFERLENGTH];
   char mFormatBufferNoIntensity[BUFFERLENGTH];
   FILE* mFile;

@@ -41,13 +41,25 @@ bool PtxWriter::IsOpen()
   return mFile != nullptr;
 }
 
-bool PtxWriter::WriteHeader(vector<string>& header)
+void PtxWriter::WriteHeader(double scannerMatrix3x4[12], double ucs[16])
 {
-  for (string line : header)
+  int pos = 0;
+  char buffer[BUFFERLENGTH];
+  for (int i = 0; i < 4; i++)
   {
-    WriteLine(line.c_str());
+    sprintf_s(buffer, BUFFERLENGTH, "%g %g %g",
+              scannerMatrix3x4[pos], scannerMatrix3x4[pos + 1], scannerMatrix3x4[pos + 2]);
+    WriteLine(buffer);
+    pos += 3;
   }
-  return true;
+  pos = 0;
+  for (int i = 0; i < 4; i++)
+  {
+    sprintf_s(buffer, BUFFERLENGTH, "%g %g %g %g",
+              ucs[pos], ucs[pos + 1], ucs[pos + 2], ucs[pos + 3]);
+    WriteLine(buffer);
+    pos += 4;
+  }
 }
 
 //https://thispointer.com/how-to-remove-substrings-from-a-string-in-c/
@@ -65,44 +77,21 @@ void eraseAllSubStr(std::string& mainStr, const std::string& toErase)
   }
 }
 
-bool PtxWriter::ProcessLine(const string& rInput)
+bool PtxWriter::WritePoint(float x, float y, float z,
+                           float i, int r, int g, int b)
 {
-  AnalysisFormat(rInput);
-  if (mFormat == 0)
-  {
-    return false;
-  }
-  float x, y, z, i;
-  char r[20], g[20], b[20];
-  int num = sscanf_s(rInput.c_str(), "%f %f %f %f %s %s %s",
-                     &x, &y, &z, &i, r, 20, g, 20, b, 20);
   char buffer[BUFFERLENGTH];
   const char* pOutput = buffer;
   const char* pFormat = (i == 0 || i == 0.5) ?
                         mFormatBufferNoIntensity : mFormatBuffer;
-  if (num != mFormat)
-  { return false; }
+
   if (mFormat == 4)
   {
-    if (!(x == 0 && y == 0 && z == 0))
-    {
-      sprintf_s(buffer, BUFFERLENGTH, pFormat, x, y, z, i);
-    }
-    else
-    {
-      pOutput = "0 0 0 0.5";
-    }
+    sprintf_s(buffer, BUFFERLENGTH, pFormat, x, y, z, i);
   }
   else
   {
-    if (!(x == 0 && y == 0 && z == 0))
-    {
-      sprintf_s(buffer, BUFFERLENGTH, pFormat, x, y, z, i, r, g, b);
-    }
-    else
-    {
-      pOutput = "0 0 0 0.5 0 0 0";
-    }
+    sprintf_s(buffer, BUFFERLENGTH, pFormat, x, y, z, i, r, g, b);
   }
   string line = pOutput;
   eraseAllSubStr(line, mZeroString.c_str());
@@ -110,17 +99,10 @@ bool PtxWriter::ProcessLine(const string& rInput)
   return true;
 }
 
-bool PtxWriter::AnalysisFormat(const string& rLine)
+bool PtxWriter::InitExportFormat()
 {
-  if (mFormat >= 0)
-  {
-    return mFormat;
-  }
-  float x, y, z, i;
-  float r, g, b;
-  int num = sscanf_s(rLine.c_str(), "%f %f %f %f %f %f %f",
-                     &x, &y, &z, &i, &r, &g, &b);
-  mFormat = num;
+
+  //mFormat = num;
   mZeroString = ".0000000000";
   mZeroString[mPosPrecision + 1] = 0;
   if (mFormat == 4)
@@ -133,13 +115,36 @@ bool PtxWriter::AnalysisFormat(const string& rLine)
   else if (mFormat == 7)
   {
     sprintf_s(mFormatBufferNoIntensity, BUFFERLENGTH,
-              "%%.%df %%.%df %%.%df %%.%df %%s %%s %%s",
+              "%%.%df %%.%df %%.%df %%.%df %%d %%d %%d",
               mPosPrecision, mPosPrecision, mPosPrecision, 1);
     sprintf_s(mFormatBuffer, BUFFERLENGTH,
-              "%%.%df %%.%df %%.%df %%.%df %%s %%s %%s",
+              "%%.%df %%.%df %%.%df %%.%df %%d %%d %%d",
               mPosPrecision, mPosPrecision, mPosPrecision, mIntensityPrecision);
   }
   else
   { mFormat = 0; }//invalid format
   return mFormat;
+}
+
+int
+PtxWriter::WritePoints(vector<float>& x, vector<float>& y, vector<float>& z,
+                       vector<float>& rIntensity, vector<int>& rgbColor)
+{
+  if (mFormat  == -1)
+  {
+    mFormat = rgbColor.size() ? 7 : 4;
+    InitExportFormat();
+  }
+  if (rgbColor.size() && mFormat != 7)
+  { return 0; }
+  if (x.size() != y.size() || x.size() != z.size() ||
+      x.size() != rIntensity.size())
+  { return 0; }
+  for (int i = 0; i < x.size(); i++)
+  {
+    int c = rgbColor[i];
+    WritePoint(x[i], y[i], z[i], rIntensity[i],
+               c & 0xff, (c >> 8) & 0xff, (c >> 16) & 0xff);
+  }
+  return (int)x.size();
 }

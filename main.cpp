@@ -58,6 +58,7 @@ int ProcessConvert()
   }
   while (ptxReader.HasMoredata())
   {
+    ptxwriter.NextScan();
     if (false == ptxReader.ProcessConvert(subsample, ptxwriter))
     {
       printf("failed to convert ptx file");

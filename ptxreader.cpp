@@ -29,12 +29,13 @@ PtxReader::ReadSize(int& column, int& row)
   fgets(mBuffer, MAXLINELENTH, mFile);
   column = atoi(mBuffer);
   mBuffer[0] = 0;
-  fgets(mBuffer, MAXLINELENTH, mFile);
+  bool success = nullptr != fgets(mBuffer, MAXLINELENTH, mFile);
   row = atoi(mBuffer);
   mPointCount += column * row;
   if (column * row != 0)
   { mNumScan++; }
-  return column * row != 0;
+  mRows = row;
+  return success;
 }
 
 void PtxReader::RemoveEndCrLn(std::string& str)
@@ -89,9 +90,10 @@ bool PtxReader::ProcessConvert(int subample, PtxWriter& ptxwriter)
     return false;
   }
   ptxwriter.WriteSize(columns / mSubsample, rows / mSubsample);
-  vector<string> header;
-  ReadHeader(header);
-  ptxwriter.WriteHeader(header);
+  double scannerMatrix3x4[12];
+  double ucs[16];
+  ReadHeader(scannerMatrix3x4, ucs);
+  ptxwriter.WriteHeader(scannerMatrix3x4, ucs);
 
   const int ReportCount = 100;
   bool ok = true;
@@ -104,25 +106,78 @@ bool PtxReader::ProcessConvert(int subample, PtxWriter& ptxwriter)
     }
     const int ReportCount = 100;
     bool bSkipColumn = (col % mSubsample) != 0;
-    for (int x = 0; x < rows; x++)
-      if (ReadLine(line))
-      {
-        //skip column or row
-        if (bSkipColumn || (x % mSubsample) != 0)
-        {
-          continue;
-        }
-        if (false == ptxwriter.ProcessLine(line))
-        {
-          ok = false;
-          break;
-        }
-      }
-      else
-      {
-        ok = false;
-        break;
-      }
+    vector<float>x, y, z, intensity;
+    vector<int> color;
+    int np = ReadPoints(x, y, z, intensity, color);
+    if (np && !bSkipColumn)
+    {
+      ptxwriter.WritePoints(x, y, z, intensity, color);
+    }
+    if (np == 0)
+    { break; }
   }
   return ok;
+}
+
+void PtxReader::ReadHeader(double scannerMatrix3x4[12], double ucs[16])
+{
+  int pos = 0;
+  vector<std::string > header;
+  ReadHeader(header);
+
+  for (int i = 0; i < 4; i++)
+  {
+    sscanf_s(header[i].c_str(), "%lg %lg %lg",
+             &scannerMatrix3x4[pos], &scannerMatrix3x4[pos + 1],
+             &scannerMatrix3x4[pos + 2]);
+    pos += 3;
+  }
+  pos = 0;
+  for (int i = 0; i < 4; i++)
+  {
+    sscanf_s(header[i + 4].c_str(), "%lg %lg %lg %lg",
+             &ucs[pos], &ucs[pos + 1], &ucs[pos + 2], &ucs[pos + 3]);
+    pos += 4;
+  }
+}
+
+int PtxReader::ReadPoints(vector<float>& ax, vector<float>& ay, vector<float>& az,
+                          vector<float>& rIntensity, vector<int>& rgbColor)
+{
+  std::string line;
+  bool ok = true;
+  ax.clear();
+  ay.clear();
+  az.clear();
+  rIntensity.clear();
+  rgbColor.clear();
+  for (int row = 0; row < mRows && ok; row++)
+  {
+    if (ReadLine(line))
+    {
+      //skip row
+      if ((row % mSubsample) != 0)
+      {
+        continue;
+      }
+      float x, y, z, i;
+      int r, g, b;
+      int num = sscanf_s(line.c_str(), "%f %f %f %f %d %d %d",
+                         &x, &y, &z, &i, &r, &g, &b);
+      ax.push_back(x);
+      ay.push_back(y);
+      az.push_back(z);
+      rIntensity.push_back(i);
+      if (num >= 7)
+      {
+        rgbColor.push_back(r + (g << 8) + (b << 16));
+      }
+    }
+    else
+    {
+      ok = false;
+      break;
+    }
+  }
+  return (int)ax.size();
 }
