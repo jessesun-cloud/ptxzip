@@ -12,10 +12,10 @@ public:
   PtxReader(const char* pFilename);
   ~PtxReader();
 
-  bool ReadSize(int& column, int& width);
-  void ReadHeader(double scannerMatrix3x4[12], double ucs[16]);
+  bool ReadSize(int& columns, int& rows);
+  bool ReadHeader(double scannerMatrix3x4[12], double ucs[16]);
   bool HasMoredata();
-  static void RemoveEndCrLn(std::string& str);
+  std::string GetScanName();
   bool ProcessConvert(int subample, PtxWriter& ptxwriter);
   __int64 GetPointCount() { return mPointCount; }
   int GetNumScan() { return mNumScan; }
@@ -23,7 +23,7 @@ public:
                  vector<float>& rIntensity, vector<int>& rgbColor);
 private:
   bool ReadLine(std::string& rLine);
-  void ReadHeader(vector<string>& rHeader);
+  bool ReadHeader(vector<string>& rHeader);
   char mBuffer[MAXLINELENTH];
   FILE* mFile;
   string mFilename;

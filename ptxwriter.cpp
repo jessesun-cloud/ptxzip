@@ -82,7 +82,7 @@ bool PtxWriter::WritePoint(float x, float y, float z,
 {
   char buffer[BUFFERLENGTH];
   const char* pOutput = buffer;
-  const char* pFormat = (i == 0 || i == 0.5) ?
+  const char* pFormat = (i == 0.5) ?
                         mFormatBufferNoIntensity : mFormatBuffer;
 
   if (mFormat == 4)
@@ -135,15 +135,15 @@ PtxWriter::WritePoints(vector<float>& x, vector<float>& y, vector<float>& z,
     mFormat = rgbColor.size() ? 7 : 4;
     InitExportFormat();
   }
-  if (rgbColor.size() && mFormat != 7)
+  if (rgbColor.size() == 0 && mFormat == 7)
   { return 0; }
   if (x.size() != y.size() || x.size() != z.size() ||
-      x.size() != rIntensity.size())
+      (x.size() != rIntensity.size() && rIntensity.size() > 0))
   { return 0; }
   for (int i = 0; i < x.size(); i++)
   {
-    int c = rgbColor[i];
-    WritePoint(x[i], y[i], z[i], rIntensity[i],
+    int c = mFormat == 7 ? rgbColor[i] : 0;
+    WritePoint(x[i], y[i], z[i], rIntensity.size() ? rIntensity[i] : 0.5,
                c & 0xff, (c >> 8) & 0xff, (c >> 16) & 0xff);
   }
   return (int)x.size();

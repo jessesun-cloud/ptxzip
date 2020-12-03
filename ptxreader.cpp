@@ -5,6 +5,13 @@
 #include <streambuf>
 #include <algorithm>
 
+#ifdef _WIN32
+#include <filesystem>
+#else
+#include <experimental/filesystem>
+#endif
+namespace fs = std::experimental::filesystem;
+
 PtxReader::PtxReader(const char* pFilename)
 {
   mSubsample = 1;
@@ -32,13 +39,12 @@ PtxReader::ReadSize(int& column, int& row)
   bool success = nullptr != fgets(mBuffer, MAXLINELENTH, mFile);
   row = atoi(mBuffer);
   mPointCount += column * row;
-  if (column * row != 0)
-  { mNumScan++; }
+  mNumScan++;
   mRows = row;
   return success;
 }
 
-void PtxReader::RemoveEndCrLn(std::string& str)
+static void RemoveEndCrLn(std::string& str)
 {
   std::string::iterator end_pos = std::remove(str.begin(), str.end(), '\r');
   str.erase(end_pos, str.end());
@@ -46,11 +52,11 @@ void PtxReader::RemoveEndCrLn(std::string& str)
   str.erase(end_pos, str.end());
 }
 
-void PtxReader::ReadHeader(vector<string>& rHeader)
+bool PtxReader::ReadHeader(vector<string>& rHeader)
 {
   rHeader.clear();
   if (mFile == nullptr)
-  { return ; }
+  { return false; }
   for (int i = 0; i < 8; i++)
   {
     mBuffer[0] = 0;
@@ -61,6 +67,7 @@ void PtxReader::ReadHeader(vector<string>& rHeader)
       rHeader.push_back(str);
     }
   }
+  return rHeader.size() == 8;
 }
 
 bool PtxReader::ReadLine(string& rLine)
@@ -85,16 +92,16 @@ bool PtxReader::ProcessConvert(int subample, PtxWriter& ptxwriter)
   {
     return true;
   }
-  if (columns / mSubsample == 0 || rows / mSubsample == 0)
-  {
-    return false;
-  }
+
   ptxwriter.WriteSize(columns / mSubsample, rows / mSubsample);
   double scannerMatrix3x4[12];
   double ucs[16];
-  ReadHeader(scannerMatrix3x4, ucs);
-  ptxwriter.WriteHeader(scannerMatrix3x4, ucs);
-
+  if (ReadHeader(scannerMatrix3x4, ucs))
+  { ptxwriter.WriteHeader(scannerMatrix3x4, ucs); }
+  if (columns / mSubsample == 0 || rows / mSubsample == 0)
+  {
+    return true;
+  }
   const int ReportCount = 100;
   bool ok = true;
   for (int col = 0; col < columns && ok; col++)
@@ -115,16 +122,17 @@ bool PtxReader::ProcessConvert(int subample, PtxWriter& ptxwriter)
     }
     if (np == 0)
     { break; }
+    ok = HasMoredata();
   }
   return ok;
 }
 
-void PtxReader::ReadHeader(double scannerMatrix3x4[12], double ucs[16])
+bool PtxReader::ReadHeader(double scannerMatrix3x4[12], double ucs[16])
 {
   int pos = 0;
   vector<std::string > header;
-  ReadHeader(header);
-
+  if (false == ReadHeader(header))
+  { return false; }
   for (int i = 0; i < 4; i++)
   {
     sscanf_s(header[i].c_str(), "%lg %lg %lg",
@@ -139,6 +147,7 @@ void PtxReader::ReadHeader(double scannerMatrix3x4[12], double ucs[16])
              &ucs[pos], &ucs[pos + 1], &ucs[pos + 2], &ucs[pos + 3]);
     pos += 4;
   }
+  return true;
 }
 
 int PtxReader::ReadPoints(vector<float>& ax, vector<float>& ay, vector<float>& az,
@@ -160,17 +169,20 @@ int PtxReader::ReadPoints(vector<float>& ax, vector<float>& ay, vector<float>& a
       {
         continue;
       }
-      float x, y, z, i;
+      float x, y, z, i = 0;
       int r, g, b;
       int num = sscanf_s(line.c_str(), "%f %f %f %f %d %d %d",
                          &x, &y, &z, &i, &r, &g, &b);
-      ax.push_back(x);
-      ay.push_back(y);
-      az.push_back(z);
-      rIntensity.push_back(i);
-      if (num >= 7)
+      if (num >= 3)
       {
-        rgbColor.push_back(r + (g << 8) + (b << 16));
+        ax.push_back(x);
+        ay.push_back(y);
+        az.push_back(z);
+        rIntensity.push_back(i);
+        if (num >= 7)
+        {
+          rgbColor.push_back(r + (g << 8) + (b << 16));
+        }
       }
     }
     else
@@ -180,4 +192,11 @@ int PtxReader::ReadPoints(vector<float>& ax, vector<float>& ay, vector<float>& a
     }
   }
   return (int)ax.size();
+}
+
+std::string PtxReader::GetScanName()
+{
+  fs::path filename(mFilename.c_str());
+  //string fn = filename.stem();
+  return "";
 }
