@@ -69,7 +69,6 @@ std::string FormatFloat(float x, const char* pFormat)
   char buffer[200];
   char* pBuffer = buffer;
   sprintf_s(buffer, 200, pFormat, x);
-  return pBuffer;
   if (strncmp(buffer, "0.", 2) == 0)
   { pBuffer++; } //remove 0 before .
   else if (strncmp(buffer, "-0.", 3) == 0)
