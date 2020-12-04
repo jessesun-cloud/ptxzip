@@ -62,77 +62,52 @@ void PtxWriter::WriteHeader(double scannerMatrix3x4[12], double ucs[16])
   }
 }
 
-//https://thispointer.com/how-to-remove-substrings-from-a-string-in-c/
-/*
- * Erase all Occurrences of given substring from main string.
- */
-void eraseAllSubStr(std::string& mainStr, const std::string& toErase)
+std::string FormatFloat(float x, const char* pFormat)
 {
-  size_t pos = std::string::npos;
-  // Search for the substring in string in a loop untill nothing is found
-  while ((pos = mainStr.find(toErase)) != std::string::npos)
+  if ((int)x == x)
+  { return std::to_string((int)x); }
+  char buffer[200];
+  char* pBuffer = buffer;
+  sprintf_s(buffer, 200, pFormat, x);
+  return pBuffer;
+  if (strncmp(buffer, "0.", 2) == 0)
+  { pBuffer++; } //remove 0 before .
+  else if (strncmp(buffer, "-0.", 3) == 0)
   {
-    // If found then erase it from string
-    mainStr.erase(pos, toErase.length());
+    //-0.  change to -.
+    pBuffer[1] = pBuffer[0];
+    pBuffer++;
   }
-}
-
-static bool IsEmptyLine(float x, float y, float z)
-{
-  return x == 0 && y == 0 && z == 0;
+  //remove ending 0
+  int pos = (int)strlen(pBuffer) - 1;
+  while (pos > 0 && pBuffer[pos] == '0')
+  {
+    pBuffer[pos--] = 0;
+  }
+  return pBuffer;
 }
 
 bool PtxWriter::WritePoint(float x, float y, float z,
                            float i, int r, int g, int b)
 {
-  char buffer[BUFFERLENGTH];
-  const char* pOutput = buffer;
-  const char* pFormat = (i == 0.5) ?
-                        mFormatBufferNoIntensity : mFormatBuffer;
-
-  if (mFormat == 4)
+  string line = FormatFloat(x, mCoordFormat.c_str()) + " " +
+                FormatFloat(y, mCoordFormat.c_str()) + " " +
+                FormatFloat(z, mCoordFormat.c_str()) + " " +
+                FormatFloat(i, mIntensityFormat.c_str());
+  if (mFormat == 7)
   {
-    if (IsEmptyLine(x, y, z))
-    { return "0 0 0 0"; }
-    sprintf_s(buffer, BUFFERLENGTH, pFormat, x, y, z, i);
+    line += " " + std::to_string(r) +
+            " " + std::to_string(g) +
+            " " + std::to_string(b);
   }
-  else
-  {
-    if (IsEmptyLine(x, y, z))
-    { return "0 0 0 0 0 0 0"; }
-    sprintf_s(buffer, BUFFERLENGTH, pFormat, x, y, z, i, r, g, b);
-  }
-  string line = pOutput;
-  eraseAllSubStr(line, mZeroString.c_str());
   WriteLine(line.c_str());
   return true;
 }
 
-bool PtxWriter::InitExportFormat()
+void PtxWriter::InitExportFormat()
 {
-  mZeroString = ".0000000000";
-  mZeroString[mPosPrecision + 1] = 0;
-  if (mFormat == 4)
-  {
-    sprintf_s(mFormatBufferNoIntensity, BUFFERLENGTH,
-              "%%.%dg %%.%dg %%.%dg %1g",
-              mPosPrecision, mPosPrecision, mPosPrecision);
-    sprintf_s(mFormatBuffer, BUFFERLENGTH,
-              "%%.%dg %%.%dg %%.%dg %%.%dg",
-              mPosPrecision, mPosPrecision, mPosPrecision, mIntensityPrecision);
-  }
-  else if (mFormat == 7)
-  {
-    sprintf_s(mFormatBufferNoIntensity, BUFFERLENGTH,
-              "%%.%dg %%.%dg %%.%dg %%.%dg %%d %%d %%d",
-              mPosPrecision, mPosPrecision, mPosPrecision, 1);
-    sprintf_s(mFormatBuffer, BUFFERLENGTH,
-              "%%.%dg %%.%dg %%.%dg %%.%dg %%d %%d %%d",
-              mPosPrecision, mPosPrecision, mPosPrecision, mIntensityPrecision);
-  }
-  else
-  { mFormat = 0; }//invalid format
-  return mFormat;
+  mCoordFormat = "%." + std::to_string(mPosPrecision) + "f";
+  mIntensityFormat = "%." + std::to_string(mIntensityPrecision) + "f";
 }
 
 int

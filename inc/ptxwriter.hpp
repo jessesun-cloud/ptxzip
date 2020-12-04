@@ -21,12 +21,11 @@ public:
   void NextScan() { mFormat = -1; }
 private:
   bool WriteLine(const char* pLine);
-  bool InitExportFormat();
-  char mFormatBuffer[BUFFERLENGTH];
-  char mFormatBufferNoIntensity[BUFFERLENGTH];
+  void InitExportFormat();
   FILE* mFile;
   string mFilename;
   int mPosPrecision, mIntensityPrecision, mSubsample;
   int mFormat;
-  string mZeroString;
+  string mCoordFormat;
+  string mIntensityFormat;
 };
