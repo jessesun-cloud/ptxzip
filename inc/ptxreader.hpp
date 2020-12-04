@@ -2,6 +2,7 @@
 #include <string>
 #include <stdio.h>
 #include <inc/ptxwriter.hpp>
+#include <inc/IScanInterface.hpp>
 
 #define MAXLINELENTH 200
 using namespace std;
@@ -21,6 +22,7 @@ public:
   int GetNumScan() { return mNumScan; }
   int ReadPoints(vector<float>& x, vector<float>& y, vector<float>& z,
                  vector<float>& rIntensity, vector<int>& rgbColor);
+  int ReadPoints(ScanPointCallback cb);
 private:
   bool ReadLine(std::string& rLine);
   bool ReadHeader(vector<string>& rHeader);

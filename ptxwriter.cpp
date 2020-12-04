@@ -1,12 +1,10 @@
 #include <inc/ptxwriter.hpp>
 
-PtxWriter::PtxWriter(const char* pFilename)
+PtxWriter::PtxWriter()
 {
   mPosPrecision = 3;
   mIntensityPrecision = 3;
   mSubsample = 1;
-  mFile = nullptr;
-  fopen_s(&mFile, pFilename, "w+b");
   mFormat = -1;
 }
 
@@ -36,8 +34,10 @@ bool PtxWriter::WriteLine(const char* pLine)
   return 1 == fprintf(mFile, "%s\r\n", pLine);
 }
 
-bool PtxWriter::IsOpen()
+bool PtxWriter::Open(const char* pFilename)
 {
+  mFile = nullptr;
+  fopen_s(&mFile, pFilename, "w+b");
   return mFile != nullptr;
 }
 
@@ -77,6 +77,11 @@ void eraseAllSubStr(std::string& mainStr, const std::string& toErase)
   }
 }
 
+static bool IsEmptyLine(float x, float y, float z)
+{
+  return x == 0 && y == 0 && z == 0;
+}
+
 bool PtxWriter::WritePoint(float x, float y, float z,
                            float i, int r, int g, int b)
 {
@@ -87,10 +92,14 @@ bool PtxWriter::WritePoint(float x, float y, float z,
 
   if (mFormat == 4)
   {
+    if (IsEmptyLine(x, y, z))
+    { return "0 0 0 0"; }
     sprintf_s(buffer, BUFFERLENGTH, pFormat, x, y, z, i);
   }
   else
   {
+    if (IsEmptyLine(x, y, z))
+    { return "0 0 0 0 0 0 0"; }
     sprintf_s(buffer, BUFFERLENGTH, pFormat, x, y, z, i, r, g, b);
   }
   string line = pOutput;
@@ -101,24 +110,24 @@ bool PtxWriter::WritePoint(float x, float y, float z,
 
 bool PtxWriter::InitExportFormat()
 {
-
-  //mFormat = num;
   mZeroString = ".0000000000";
   mZeroString[mPosPrecision + 1] = 0;
   if (mFormat == 4)
   {
-    sprintf_s(mFormatBufferNoIntensity, BUFFERLENGTH, "%%.%df %%.%df %%.%df %%.%df",
-              mPosPrecision, mPosPrecision, mPosPrecision, 1);
-    sprintf_s(mFormatBuffer, BUFFERLENGTH, "%%.%df %%.%df %%.%df %%.%df",
+    sprintf_s(mFormatBufferNoIntensity, BUFFERLENGTH,
+              "%%.%dg %%.%dg %%.%dg %1g",
+              mPosPrecision, mPosPrecision, mPosPrecision);
+    sprintf_s(mFormatBuffer, BUFFERLENGTH,
+              "%%.%dg %%.%dg %%.%dg %%.%dg",
               mPosPrecision, mPosPrecision, mPosPrecision, mIntensityPrecision);
   }
   else if (mFormat == 7)
   {
     sprintf_s(mFormatBufferNoIntensity, BUFFERLENGTH,
-              "%%.%df %%.%df %%.%df %%.%df %%d %%d %%d",
+              "%%.%dg %%.%dg %%.%dg %%.%dg %%d %%d %%d",
               mPosPrecision, mPosPrecision, mPosPrecision, 1);
     sprintf_s(mFormatBuffer, BUFFERLENGTH,
-              "%%.%df %%.%df %%.%df %%.%df %%d %%d %%d",
+              "%%.%dg %%.%dg %%.%dg %%.%dg %%d %%d %%d",
               mPosPrecision, mPosPrecision, mPosPrecision, mIntensityPrecision);
   }
   else
@@ -127,24 +136,24 @@ bool PtxWriter::InitExportFormat()
 }
 
 int
-PtxWriter::WritePoints(vector<float>& x, vector<float>& y, vector<float>& z,
-                       vector<float>& rIntensity, vector<int>& rgbColor)
+PtxWriter::WritePoints(int numPoint, float* x, float* y, float* z,
+                       float* rIntensity, int* rgbColor)
 {
-  if (mFormat  == -1)
+  if (mFormat == -1)
   {
-    mFormat = rgbColor.size() ? 7 : 4;
+    mFormat = rgbColor == nullptr ? 4 : 7;
     InitExportFormat();
   }
-  if (rgbColor.size() == 0 && mFormat == 7)
+  if (rgbColor == nullptr && mFormat == 7)
   { return 0; }
-  if (x.size() != y.size() || x.size() != z.size() ||
-      (x.size() != rIntensity.size() && rIntensity.size() > 0))
-  { return 0; }
-  for (int i = 0; i < x.size(); i++)
+
+  for (int i = 0; i < numPoint; i++)
   {
+    if (i % mSubsample != 0)
+    { continue; }
     int c = mFormat == 7 ? rgbColor[i] : 0;
-    WritePoint(x[i], y[i], z[i], rIntensity.size() ? rIntensity[i] : 0.5,
+    WritePoint(x[i], y[i], z[i], rIntensity ? rIntensity[i] : 0.5f,
                c & 0xff, (c >> 8) & 0xff, (c >> 16) & 0xff);
   }
-  return (int)x.size();
+  return (int)numPoint;
 }

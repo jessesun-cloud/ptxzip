@@ -43,10 +43,10 @@ bool parseInput(int argc, char** argv)
 int ProcessConvert()
 {
   PtxReader ptxReader(input.c_str());
-  PtxWriter ptxwriter(output.c_str());
+  PtxWriter ptxwriter;
 
   ptxwriter.Init(posPrecision, intensityPrecision, subsample);
-  if (ptxwriter.IsOpen() == false)
+  if (ptxwriter.Open(output.c_str()) == false)
   {
     printf("can not create file %s", output.c_str());
     return -3;
@@ -58,7 +58,7 @@ int ProcessConvert()
   }
   while (ptxReader.HasMoredata())
   {
-    ptxwriter.NextScan();
+
     if (false == ptxReader.ProcessConvert(subsample, ptxwriter))
     {
       printf("failed to convert ptx file");

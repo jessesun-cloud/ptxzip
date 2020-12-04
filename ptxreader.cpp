@@ -92,7 +92,7 @@ bool PtxReader::ProcessConvert(int subample, PtxWriter& ptxwriter)
   {
     return true;
   }
-
+  ptxwriter.NextScan();
   ptxwriter.WriteSize(columns / mSubsample, rows / mSubsample);
   double scannerMatrix3x4[12];
   double ucs[16];
@@ -118,7 +118,8 @@ bool PtxReader::ProcessConvert(int subample, PtxWriter& ptxwriter)
     int np = ReadPoints(x, y, z, intensity, color);
     if (np && !bSkipColumn)
     {
-      ptxwriter.WritePoints(x, y, z, intensity, color);
+      ptxwriter.WritePoints(np, x.data(), y.data(), z.data(),
+                            intensity.data(), color.data());
     }
     if (np == 0)
     { break; }
