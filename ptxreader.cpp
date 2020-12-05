@@ -84,50 +84,6 @@ bool PtxReader::HasMoredata()
   return true;
 }
 
-bool PtxReader::ProcessConvert(int subample, PtxWriter& ptxwriter)
-{
-  mSubsample = subample;
-  int columns, rows;
-  if (false == ReadSize(columns, rows))
-  {
-    return true;
-  }
-  ptxwriter.NextScan();
-  ptxwriter.WriteSize(columns / mSubsample, rows / mSubsample);
-  double scannerMatrix3x4[12];
-  double ucs[16];
-  if (ReadHeader(scannerMatrix3x4, ucs))
-  { ptxwriter.WriteHeader(scannerMatrix3x4, ucs); }
-  if (columns / mSubsample == 0 || rows / mSubsample == 0)
-  {
-    return true;
-  }
-  const int ReportCount = 100;
-  bool ok = true;
-  for (int col = 0; col < columns && ok; col++)
-  {
-    string line;
-    if (col % ReportCount == 0)
-    {
-      printf("%.2f%%\r", (float)col / columns);
-    }
-    const int ReportCount = 100;
-    bool bSkipColumn = (col % mSubsample) != 0;
-    vector<float>x, y, z, intensity;
-    vector<int> color;
-    int np = ReadPoints(x, y, z, intensity, color);
-    if (np && !bSkipColumn)
-    {
-      ptxwriter.WritePoints(np, x.data(), y.data(), z.data(),
-                            intensity.data(), color.data());
-    }
-    if (np == 0)
-    { break; }
-    ok = HasMoredata();
-  }
-  return ok;
-}
-
 bool PtxReader::ReadHeader(double scannerMatrix3x4[12], double ucs[16])
 {
   int pos = 0;
@@ -200,4 +156,41 @@ std::string PtxReader::GetScanName()
   fs::path filename(mFilename.c_str());
   //string fn = filename.stem();
   return "";
+}
+
+int PtxReader::ReadPoints(int subample, int columns, int rows,
+                          ScanPointCallback cb)
+{
+  mSubsample = subample;
+
+  if (columns  == 0 || rows == 0)
+  {
+    return true;
+  }
+  const int ReportCount = 100;
+  bool ok = true;
+  for (int col = 0; col < columns && ok; col++)
+  {
+    string line;
+    if (col % ReportCount == 0)
+    {
+      printf("%.2f%%\r", (float)col / columns);
+    }
+    const int ReportCount = 100;
+    bool bSkipColumn = (col % mSubsample) != 0;
+    vector<float>x, y, z, intensity;
+    vector<int> color;
+    int np = ReadPoints(x, y, z, intensity, color);
+    if (np && !bSkipColumn)
+    {
+      cb(np, x.data(), y.data(), z.data(),
+         intensity.data(), color.data());
+    }
+    if (np == 0)
+    {
+      break;
+    }
+    ok = HasMoredata();
+  }
+  return ok;
 }

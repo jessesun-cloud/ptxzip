@@ -17,7 +17,7 @@ void printusage()
 
 bool parseInput(int argc, char** argv)
 {
-  if (argc <= 4)
+  if (argc <= 3)
   {
     printusage();
     return false;
@@ -40,6 +40,32 @@ bool parseInput(int argc, char** argv)
   return true;
 }
 
+bool ProcessScan(int subample, PtxReader ptxreader, PtxWriter& ptxwriter)
+{
+  int columns, rows;
+  if (false == ptxreader.ReadSize(columns, rows))
+  {
+    return false;
+  }
+  ptxwriter.NextScan();
+  ptxwriter.WriteSize(columns / subsample, rows / subsample);
+  double scannerMatrix3x4[12];
+  double ucs[16];
+  if (ptxreader.ReadHeader(scannerMatrix3x4, ucs))
+  {
+    ptxwriter.WriteHeader(scannerMatrix3x4, ucs);
+  }
+  auto ExportLambda = [&](int np, float * x,
+                          float * y, float * z,
+                          float * pIntensity,
+                          int* rgbColor)->bool
+  {
+    ptxwriter.WritePoints(np, x, y, z, pIntensity, rgbColor);
+    return true;
+  };
+  return ptxreader.ReadPoints(subample, columns, rows, ExportLambda);
+}
+
 int ProcessConvert()
 {
   PtxReader ptxReader(input.c_str());
@@ -58,10 +84,8 @@ int ProcessConvert()
   }
   while (ptxReader.HasMoredata())
   {
-
-    if (false == ptxReader.ProcessConvert(subsample, ptxwriter))
+    if (false == ProcessScan(subsample, ptxReader, ptxwriter))
     {
-      printf("failed to convert ptx file");
       break;
     }
   }

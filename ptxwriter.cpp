@@ -1,5 +1,7 @@
 #include <inc/ptxwriter.hpp>
 
+#define BUFFERLENGTH 200
+
 PtxWriter::PtxWriter()
 {
   mPosPrecision = 3;

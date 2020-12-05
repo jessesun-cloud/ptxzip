@@ -4,7 +4,6 @@
 #include <stdio.h>
 
 using namespace std;
-#define BUFFERLENGTH 200
 
 class PtxWriter
 {
