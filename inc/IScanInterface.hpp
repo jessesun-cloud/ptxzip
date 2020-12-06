@@ -9,7 +9,7 @@
 using namespace std;
 using namespace Eigen;
 
-typedef std::function<bool(int numPoint,
+typedef std::function<void(int numPoint,
                            float* pos, float* rIntensity,
                            int* rgbColor)> ScanPointCallback;
 

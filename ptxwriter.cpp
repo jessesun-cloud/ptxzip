@@ -46,37 +46,6 @@ bool PtxWriter::Open(const char* pFilename)
 
 void PtxWriter::WriteHeader(double scannerMatrix3x4[12], double ucs[16])
 {
-  double* matrix3x4 = scannerMatrix3x4;
-  Eigen::Vector3d translate = Eigen::Vector3d(matrix3x4[0], matrix3x4[1], matrix3x4[2]);
-  Eigen::Vector3d x = *(Eigen::Vector3d*)(matrix3x4 + 3);
-  Eigen::Vector3d y = *(Eigen::Vector3d*)(matrix3x4 + 6);
-  Eigen::Vector3d z = *(Eigen::Vector3d*)(matrix3x4 + 9);
-  Eigen::Matrix3d rot;
-  rot.col(0) = x;
-  rot.col(1) = y;
-  rot.col(2) = z;
-  Eigen::Matrix4d mTransformation;
-  mTransformation.setIdentity();   // Set to Identity to make bottom row of Matrix 0,0,0,1
-  mTransformation.block<3, 3>(0, 0) = rot;
-  mTransformation.block<3, 1>(0, 3) = translate;
-  //if scanner transformation is identity, use UCS
-  if (mTransformation.isIdentity())
-  {
-    memcpy(mTransformation.data(), ucs, 16);
-    mTransformation = mTransformation.transpose();
-  }
-
-  //scale up coordinate system
-  //scale down mTransformation
-  mScale = pow(10, mPosPrecision);
-  mTransformation /= mScale;
-  mTransformation = mTransformation.transpose();
-  memcpy(ucs, mTransformation.data(), 16);
-  //clear scanner transformation, so that application will use ucs
-  matrix3x4[0] = matrix3x4[1] = matrix3x4[2] = 0;
-  rot.setIdentity();
-  memcpy(matrix3x4 + 3, rot.data(), sizeof(float) * 9);
-
   int pos = 0;
   char buffer[BUFFERLENGTH];
   for (int i = 0; i < 4; i++)

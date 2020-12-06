@@ -172,6 +172,9 @@ std::string PtxReader::GetScanName()
 {
   fs::path filename(mpImpl->mFilename.c_str());
   string fn = filename.stem().u8string();
+  fn += "_" + std::to_string(mpImpl->mNumScan);
+  fn += "_" + std::to_string(mpImpl->mColumns);
+  fn += "x" + std::to_string(mpImpl->mRows);
   return fn;
 }
 
@@ -214,7 +217,7 @@ int PtxReader::Impl::ReadPoints(int subsample, ScanPointCallback cb)
 __int64 PtxReader::GetPointCount() { return mpImpl->mPointCount; }
 int PtxReader::GetNumScan() { return mpImpl->mNumScan; }
 
-bool PtxReader::LoadScan(int subample, ScanNodeCallback pNodeCb)
+bool PtxReader::LoadScan(int subample, vector< shared_ptr<ScanNode>>& rNodes)
 {
   while (HasMoredata())
   {
@@ -231,13 +234,13 @@ bool PtxReader::LoadScan(int subample, ScanNodeCallback pNodeCb)
     pNode->SetMatrix(scannerMatrix3x4, ucs);
     auto ExportLambda = [&](int np, float * x,
                             float * pIntensity,
-                            int* rgbColor)->bool
+                            int* rgbColor)->void
     {
       pNode->Add(np, x, pIntensity, rgbColor);
-      return true;
     };
     ReadPoints(subample, ExportLambda);
-    pNodeCb(pNode);
+    shared_ptr<ScanNode> scan(pNode);
+    rNodes.push_back(scan);
   }
   return true;
 }

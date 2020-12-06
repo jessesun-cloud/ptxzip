@@ -19,7 +19,7 @@ public:
   __int64 GetPointCount();
   int GetNumScan();
   int ReadPoints(int subample, ScanPointCallback cb);
-  bool LoadScan(int sub, ScanNodeCallback CB);
+  bool LoadScan(int sub, vector< shared_ptr<ScanNode>>& rNodes);
 private:
   bool ReadHeader(vector<string>& rHeader);
 

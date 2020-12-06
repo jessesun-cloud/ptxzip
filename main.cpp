@@ -63,10 +63,9 @@ bool ProcessScan(int subample, PtxReader& ptxreader, PtxWriter& ptxwriter)
   }
   auto ExportLambda = [&](int np, float * x,
                           float * pIntensity,
-                          int* rgbColor)->bool
+                          int* rgbColor)->void
   {
     ptxwriter.WritePoints(np, x, pIntensity, rgbColor);
-    return true;
   };
   return ptxreader.ReadPoints(subample, ExportLambda);
 }
@@ -99,19 +98,11 @@ int ProcessConvert()
   return ptxReader.GetNumScan() > 0;
 }
 
-
 size_t LoadAllpoints()
 {
   PtxReader ptxReader(input.c_str());
   vector< shared_ptr<ScanNode>> nodes;
-
-  auto readLambda = [&](ScanNode * pNode)->bool
-  {
-    shared_ptr<ScanNode> scan(pNode);
-    nodes.push_back(scan);
-    return true;
-  };
-  ptxReader.LoadScan(subsample, readLambda);
+  ptxReader.LoadScan(subsample, nodes);
   return 0;
 }
 
