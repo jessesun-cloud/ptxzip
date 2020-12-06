@@ -14,7 +14,7 @@ public:
   void WriteSize(int col, int rows);
   bool Open(const char* pFilename);
   void WriteHeader(double scannerPos[12],  double ucs[16]);
-  int WritePoints(int numPoint, float* x, float* y, float* z,
+  int WritePoints(int numPoint, float* pos,
                   float* rIntensity, int* pRgbColor);
   bool WritePoint(float x, float y, float z, float i, int r, int g, int b);
   void NextScan() { mFormat = -1; }

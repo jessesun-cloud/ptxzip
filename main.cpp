@@ -62,11 +62,10 @@ bool ProcessScan(int subample, PtxReader& ptxreader, PtxWriter& ptxwriter)
     ptxwriter.WriteHeader(scannerMatrix3x4, ucs);
   }
   auto ExportLambda = [&](int np, float * x,
-                          float * y, float * z,
                           float * pIntensity,
                           int* rgbColor)->bool
   {
-    ptxwriter.WritePoints(np, x, y, z, pIntensity, rgbColor);
+    ptxwriter.WritePoints(np, x, pIntensity, rgbColor);
     return true;
   };
   return ptxreader.ReadPoints(subample, ExportLambda);
@@ -103,9 +102,9 @@ int ProcessConvert()
 size_t LoadAllpoints()
 {
   PtxReader ptxReader(input.c_str());
-  float* x, *y, *z, *intensity;
+  float* x, *intensity;
   int* color;
-  size_t np = ptxReader.Load(subsample, x, y, z, intensity, color);
+  size_t np = ptxReader.Load(subsample, x, intensity, color);
   return np;
 }
 

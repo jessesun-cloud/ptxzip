@@ -19,8 +19,9 @@ public:
   __int64 GetPointCount();
   int GetNumScan();
   int ReadPoints(int subample, ScanPointCallback cb);
-  size_t Load(int subample, float*& x, float*& y,
-              float*& z, float*& intensity, int*& color);
+  size_t Load(int subample, float*& pos,
+              float*& intensity, int*& color);
+  bool LoadScan(int sub, ScanNodeCallback CB);
 private:
   bool ReadHeader(vector<string>& rHeader);
 

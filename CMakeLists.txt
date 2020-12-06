@@ -5,10 +5,12 @@ cmake_minimum_required(VERSION 3.9)
 set(PUBLIC_HEADERS 
   inc/PtxReader.hpp
   inc/ptxWriter.hpp 
+  inc/IScanInterface.hpp
 )
 set(PROJECT_SRCS
   PtxReader.cpp
   ptxWriter.cpp
+  ScanNode.cpp
 )
 
 find_package(OpenMP)

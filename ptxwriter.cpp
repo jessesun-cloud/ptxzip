@@ -110,7 +110,7 @@ void PtxWriter::InitExportFormat()
 }
 
 int
-PtxWriter::WritePoints(int numPoint, float* x, float* y, float* z,
+PtxWriter::WritePoints(int numPoint, float* pnt,
                        float* rIntensity, int* rgbColor)
 {
   if (mFormat == -1)
@@ -120,11 +120,11 @@ PtxWriter::WritePoints(int numPoint, float* x, float* y, float* z,
   }
   if (rgbColor == nullptr && mFormat == 7)
   { return 0; }
-
-  for (int i = 0; i < numPoint; i++)
+  float* pPoint = pnt;
+  for (int i = 0; i < numPoint; i++, pPoint += 3)
   {
     int c = mFormat == 7 ? rgbColor[i] : 0;
-    WritePoint(x[i], y[i], z[i], rIntensity ? rIntensity[i] : 0.5f,
+    WritePoint(pPoint[0], pPoint[1], pPoint[2], rIntensity ? rIntensity[i] : 0.5f,
                c & 0xff, (c >> 8) & 0xff, (c >> 16) & 0xff);
   }
   return (int)numPoint;
