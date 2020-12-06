@@ -58,6 +58,8 @@ PtxReader::Impl::ReadSize(int& column, int& row)
 {
   column = row = 0;
   mBuffer[0] = 0;
+  if (feof(mFile))
+  { return false; }
   fgets(mBuffer, MAXLINELENTH, mFile);
   column = atoi(mBuffer);
   mBuffer[0] = 0;
@@ -94,13 +96,6 @@ bool PtxReader::Impl::ReadLine(string& rLine)
   bool ret = fgets(mBuffer, MAXLINELENTH, mFile) != NULL;
   rLine = mBuffer;
   return ret;
-}
-
-bool PtxReader::HasMoredata()
-{
-  if (mpImpl->mFile == NULL || feof(mpImpl->mFile))
-  { return false; }
-  return true;
 }
 
 bool PtxReader::ReadHeader(double scannerMatrix3x4[12], double ucs[16])
@@ -219,12 +214,12 @@ int PtxReader::GetNumScan() { return mpImpl->mNumScan; }
 
 bool PtxReader::LoadScan(int subample, vector< shared_ptr<ScanNode>>& rNodes)
 {
-  while (HasMoredata())
+  while (true)
   {
     int columns, rows;
     if (false == ReadSize(columns, rows))
     {
-      break;
+      return false;
     }
     ScanNode* pNode = new ScanNode;
     double scannerMatrix3x4[12];

@@ -96,13 +96,7 @@ bool PtxWriter::WritePoint(float x, float y, float z,
                 FormatFloat(y, mCoordFormat.c_str()) + " " +
                 FormatFloat(z, mCoordFormat.c_str()) + " " +
                 FormatFloat(i, mIntensityFormat.c_str());
-  if (mScale != 1)
-  {
-    line = std::to_string((int)(x * mScale)) + " " +
-           std::to_string((int)(y * mScale)) + " " +
-           std::to_string((int)(z * mScale)) + " " +
-           FormatFloat(i, mIntensityFormat.c_str());
-  }
+
   if (mFormat == 7)
   {
     line += " " + std::to_string(r) +

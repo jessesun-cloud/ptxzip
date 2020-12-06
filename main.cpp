@@ -81,12 +81,8 @@ int ProcessConvert()
     printf("can not create file %s", output.c_str());
     return -3;
   }
-  if (ptxReader.HasMoredata() == false)
-  {
-    printf("can not open file %s", input.c_str());
-    return -2;
-  }
-  while (ptxReader.HasMoredata())
+
+  while (true)
   {
     if (false == ProcessScan(subsample, ptxReader, ptxwriter))
     {

@@ -14,7 +14,6 @@ public:
 
   bool ReadSize(int& columns, int& rows);
   bool ReadHeader(double scannerMatrix3x4[12], double ucs[16]);
-  bool HasMoredata();
   std::string GetScanName();
   __int64 GetPointCount();
   int GetNumScan();
