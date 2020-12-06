@@ -26,4 +26,5 @@ private:
   int mFormat;
   string mCoordFormat;
   string mIntensityFormat;
+  double mScale;
 };
