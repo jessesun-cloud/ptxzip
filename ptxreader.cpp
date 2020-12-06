@@ -1,8 +1,6 @@
 #include <inc/ptxreader.hpp>
 #include <vector>
 #include <string>
-#include <stdio.h>
-#include <streambuf>
 #include <algorithm>
 
 #ifdef _WIN32
@@ -21,12 +19,8 @@ struct PtxReader::Impl
   int mSubsample;
   __int64 mPointCount;
   int mNumScan;
-  vector<float> mPos;
-  vector<float> mIntensity;
-  vector<int> mColors;
   int mColumns, mRows;
 
-  bool ProcessScan(int subample);
   int ReadPoints(int subample, ScanPointCallback cb);
   int ReadPoints(vector<float>& pos,
                  vector<float>& rIntensity, vector<int>& rgbColor);
@@ -177,8 +171,8 @@ int PtxReader::Impl::ReadPoints(vector<float>& rPos,
 std::string PtxReader::GetScanName()
 {
   fs::path filename(mpImpl->mFilename.c_str());
-  //string fn = filename.stem();
-  return "";
+  string fn = filename.stem().u8string();
+  return fn;
 }
 
 int PtxReader::ReadPoints(int subsample, ScanPointCallback cb)
@@ -191,6 +185,8 @@ int PtxReader::Impl::ReadPoints(int subsample, ScanPointCallback cb)
   mSubsample = subsample;
   const int ReportCount = 100;
   bool ok = true;
+  vector<float> pos, intensity;
+  vector<int> color;
   for (int col = 0; col < mColumns && ok; col++)
   {
     string line;
@@ -200,8 +196,6 @@ int PtxReader::Impl::ReadPoints(int subsample, ScanPointCallback cb)
     }
     const int ReportCount = 100;
     bool bSkipColumn = (col % mSubsample) != 0;
-    vector<float> pos,  intensity;
-    vector<int> color;
     int np = ReadPoints(pos, intensity, color);
     if (np && !bSkipColumn)
     {
@@ -217,54 +211,7 @@ int PtxReader::Impl::ReadPoints(int subsample, ScanPointCallback cb)
   return ok;
 }
 
-bool PtxReader::Impl::ProcessScan(int subample)
-{
-  auto ExportLambda = [&](int np, float * pos,
-                          float * pIntensity,
-                          int* rgbColor)->bool
-  {
-    size_t size = mPos.size();
-    mPos.resize(size + np * 3);
-
-    mIntensity.resize(size + np);
-    //todo apply transformation
-    memcpy(mPos.data() + size, pos, sizeof(float)* np * 3);
-    memcpy(mIntensity.data() + size, pIntensity, sizeof(float)* np);
-    if (rgbColor)
-    {
-      mColors.resize(size + np);
-      memcpy(mColors.data() + size, rgbColor, sizeof(int)* np);
-    }
-    return true;
-  };
-  return ReadPoints(subample, ExportLambda);
-}
-
-size_t
-PtxReader::Load(int subample, float*& x, float*& intensity, int*& color)
-{
-  while (HasMoredata())
-  {
-    int columns, rows;
-    if (false == ReadSize(columns, rows))
-    {
-      break;
-    }
-    double scannerMatrix3x4[12];
-    double ucs[16];
-    ReadHeader(scannerMatrix3x4, ucs);
-    if (false == mpImpl->ProcessScan(subample))
-    {
-      break;
-    }
-  }
-  x = mpImpl->mPos.data();
-  intensity = mpImpl->mIntensity.data();
-  color = mpImpl->mColors.data();
-  return mpImpl->mPos.size() / 3;
-}
-
-__int64 PtxReader::GetPointCount() { return mpImpl-> mPointCount; }
+__int64 PtxReader::GetPointCount() { return mpImpl->mPointCount; }
 int PtxReader::GetNumScan() { return mpImpl->mNumScan; }
 
 bool PtxReader::LoadScan(int subample, ScanNodeCallback pNodeCb)
@@ -280,7 +227,8 @@ bool PtxReader::LoadScan(int subample, ScanNodeCallback pNodeCb)
     double scannerMatrix3x4[12];
     double ucs[16];
     ReadHeader(scannerMatrix3x4, ucs);
-    //pNode->SetMatrix(scannerMatrix3x4, ucs); //todo
+    pNode->SetName(GetScanName().c_str());
+    pNode->SetMatrix(scannerMatrix3x4, ucs);
     auto ExportLambda = [&](int np, float * x,
                             float * pIntensity,
                             int* rgbColor)->bool

@@ -99,13 +99,20 @@ int ProcessConvert()
   return ptxReader.GetNumScan() > 0;
 }
 
+
 size_t LoadAllpoints()
 {
   PtxReader ptxReader(input.c_str());
-  float* x, *intensity;
-  int* color;
-  size_t np = ptxReader.Load(subsample, x, intensity, color);
-  return np;
+  vector< shared_ptr<ScanNode>> nodes;
+
+  auto readLambda = [&](ScanNode * pNode)->bool
+  {
+    shared_ptr<ScanNode> scan(pNode);
+    nodes.push_back(scan);
+    return true;
+  };
+  ptxReader.LoadScan(subsample, readLambda);
+  return 0;
 }
 
 int main(int argc, char** argv)

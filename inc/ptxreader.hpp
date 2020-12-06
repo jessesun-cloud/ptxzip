@@ -1,7 +1,7 @@
-#include <vector>
-#include <string>
-#include <stdio.h>
+#pragma once
+
 #include <inc/IScanInterface.hpp>
+#include <string>
 
 #define MAXLINELENTH 200
 using namespace std;
@@ -19,8 +19,6 @@ public:
   __int64 GetPointCount();
   int GetNumScan();
   int ReadPoints(int subample, ScanPointCallback cb);
-  size_t Load(int subample, float*& pos,
-              float*& intensity, int*& color);
   bool LoadScan(int sub, ScanNodeCallback CB);
 private:
   bool ReadHeader(vector<string>& rHeader);

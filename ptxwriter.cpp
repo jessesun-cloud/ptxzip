@@ -1,4 +1,6 @@
 #include <inc/ptxwriter.hpp>
+#include <vector>
+#include <string>
 
 #define BUFFERLENGTH 200
 
