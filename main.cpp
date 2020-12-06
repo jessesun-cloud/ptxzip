@@ -40,7 +40,12 @@ bool parseInput(int argc, char** argv)
   return true;
 }
 
-bool ProcessScan(int subample, PtxReader ptxreader, PtxWriter& ptxwriter)
+int SubSampledSize(int size, int subSample)
+{
+  return (size - 1) / subSample + 1;
+}
+
+bool ProcessScan(int subample, PtxReader& ptxreader, PtxWriter& ptxwriter)
 {
   int columns, rows;
   if (false == ptxreader.ReadSize(columns, rows))
@@ -48,7 +53,8 @@ bool ProcessScan(int subample, PtxReader ptxreader, PtxWriter& ptxwriter)
     return false;
   }
   ptxwriter.NextScan();
-  ptxwriter.WriteSize(columns / subsample, rows / subsample);
+  ptxwriter.WriteSize(SubSampledSize(columns, subsample),
+                      SubSampledSize(rows, subsample));
   double scannerMatrix3x4[12];
   double ucs[16];
   if (ptxreader.ReadHeader(scannerMatrix3x4, ucs))
@@ -63,7 +69,7 @@ bool ProcessScan(int subample, PtxReader ptxreader, PtxWriter& ptxwriter)
     ptxwriter.WritePoints(np, x, y, z, pIntensity, rgbColor);
     return true;
   };
-  return ptxreader.ReadPoints(subample, columns, rows, ExportLambda);
+  return ptxreader.ReadPoints(subample, ExportLambda);
 }
 
 int ProcessConvert()
@@ -94,10 +100,20 @@ int ProcessConvert()
   return ptxReader.GetNumScan() > 0;
 }
 
+size_t LoadAllpoints()
+{
+  PtxReader ptxReader(input.c_str());
+  float* x, *y, *z, *intensity;
+  int* color;
+  size_t np = ptxReader.Load(subsample, x, y, z, intensity, color);
+  return np;
+}
+
 int main(int argc, char** argv)
 {
   if (parseInput(argc, argv))
   {
+    LoadAllpoints();
     return ProcessConvert();
   }
   return -1;

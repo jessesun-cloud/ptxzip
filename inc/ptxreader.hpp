@@ -16,19 +16,14 @@ public:
   bool ReadHeader(double scannerMatrix3x4[12], double ucs[16]);
   bool HasMoredata();
   std::string GetScanName();
-  __int64 GetPointCount() { return mPointCount; }
-  int GetNumScan() { return mNumScan; }
-  int ReadPoints(vector<float>& x, vector<float>& y, vector<float>& z,
-                 vector<float>& rIntensity, vector<int>& rgbColor);
-  int ReadPoints(int subample, int, int, ScanPointCallback cb);
+  __int64 GetPointCount();
+  int GetNumScan();
+  int ReadPoints(int subample, ScanPointCallback cb);
+  size_t Load(int subample, float*& x, float*& y,
+              float*& z, float*& intensity, int*& color);
 private:
-  bool ReadLine(std::string& rLine);
   bool ReadHeader(vector<string>& rHeader);
-  char mBuffer[MAXLINELENTH];
-  FILE* mFile;
-  string mFilename;
-  int mSubsample;
-  __int64 mPointCount;
-  int mNumScan;
-  int mRows;
+
+  struct Impl;
+  Impl* mpImpl;
 };

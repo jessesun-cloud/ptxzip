@@ -12,24 +12,56 @@
 #endif
 namespace fs = std::experimental::filesystem;
 
+
+struct PtxReader::Impl
+{
+  char mBuffer[MAXLINELENTH];
+  FILE* mFile;
+  string mFilename;
+  int mSubsample;
+  __int64 mPointCount;
+  int mNumScan;
+  int mCurrentScan;
+  vector<float> mX, mY, mZ;
+  vector<float> mIntensity;
+  vector<int> mColors;
+  int mColumns, mRows;
+
+  bool ProcessScan(int subample);
+  int ReadPoints(int subample, ScanPointCallback cb);
+  int ReadPoints(vector<float>& x, vector<float>& y, vector<float>& z,
+                 vector<float>& rIntensity, vector<int>& rgbColor);
+  bool ReadLine(std::string& rLine);
+  bool ReadSize(int& columns, int& rows);
+};
+
 PtxReader::PtxReader(const char* pFilename)
 {
-  mSubsample = 1;
-  mFilename = pFilename;
-  fopen_s(&mFile, pFilename, "r+b");
-  mPointCount = 0;
-  mNumScan = 0;
+  mpImpl = new Impl;
+  mpImpl->mSubsample = 1;
+  mpImpl->mFilename = pFilename;
+  fopen_s(&mpImpl->mFile, pFilename, "r+b");
+  mpImpl->mPointCount = 0;
+  mpImpl->mNumScan = 0;
 }
 
 PtxReader::~PtxReader()
 {
-  if (mFile)
-  { fclose(mFile); }
-  mFile = NULL;
+  if (mpImpl->mFile)
+  { fclose(mpImpl->mFile); }
+  mpImpl->mFile = NULL;
+  delete mpImpl;
+  mpImpl = nullptr;
 }
 
 bool
 PtxReader::ReadSize(int& column, int& row)
+{
+  return mpImpl->ReadSize(column, row);
+}
+
+bool
+PtxReader::Impl::ReadSize(int& column, int& row)
 {
   column = row = 0;
   mBuffer[0] = 0;
@@ -38,39 +70,33 @@ PtxReader::ReadSize(int& column, int& row)
   mBuffer[0] = 0;
   bool success = nullptr != fgets(mBuffer, MAXLINELENTH, mFile);
   row = atoi(mBuffer);
-  mPointCount += column * row;
-  mNumScan++;
-  mRows = row;
+  if (success)
+  {
+    mNumScan++;
+    mRows = row;
+    mColumns = column;
+  }
   return success;
-}
-
-static void RemoveEndCrLn(std::string& str)
-{
-  std::string::iterator end_pos = std::remove(str.begin(), str.end(), '\r');
-  str.erase(end_pos, str.end());
-  end_pos = std::remove(str.begin(), str.end(), '\n');
-  str.erase(end_pos, str.end());
 }
 
 bool PtxReader::ReadHeader(vector<string>& rHeader)
 {
   rHeader.clear();
-  if (mFile == nullptr)
+  if (mpImpl->mFile == nullptr)
   { return false; }
   for (int i = 0; i < 8; i++)
   {
-    mBuffer[0] = 0;
-    if (fgets(mBuffer, MAXLINELENTH, mFile) != NULL)
+    mpImpl->mBuffer[0] = 0;
+    if (fgets(mpImpl->mBuffer, MAXLINELENTH, mpImpl->mFile) != NULL)
     {
-      string str(mBuffer);
-      RemoveEndCrLn(str);
+      string str(mpImpl->mBuffer);
       rHeader.push_back(str);
     }
   }
   return rHeader.size() == 8;
 }
 
-bool PtxReader::ReadLine(string& rLine)
+bool PtxReader::Impl::ReadLine(string& rLine)
 {
   bool ret = fgets(mBuffer, MAXLINELENTH, mFile) != NULL;
   rLine = mBuffer;
@@ -79,7 +105,7 @@ bool PtxReader::ReadLine(string& rLine)
 
 bool PtxReader::HasMoredata()
 {
-  if (mFile == NULL || feof(mFile))
+  if (mpImpl->mFile == NULL || feof(mpImpl->mFile))
   { return false; }
   return true;
 }
@@ -87,7 +113,7 @@ bool PtxReader::HasMoredata()
 bool PtxReader::ReadHeader(double scannerMatrix3x4[12], double ucs[16])
 {
   int pos = 0;
-  vector<std::string > header;
+  vector<std::string> header;
   if (false == ReadHeader(header))
   { return false; }
   for (int i = 0; i < 4; i++)
@@ -107,8 +133,8 @@ bool PtxReader::ReadHeader(double scannerMatrix3x4[12], double ucs[16])
   return true;
 }
 
-int PtxReader::ReadPoints(vector<float>& ax, vector<float>& ay, vector<float>& az,
-                          vector<float>& rIntensity, vector<int>& rgbColor)
+int PtxReader::Impl::ReadPoints(vector<float>& ax, vector<float>& ay, vector<float>& az,
+                                vector<float>& rIntensity, vector<int>& rgbColor)
 {
   std::string line;
   bool ok = true;
@@ -153,28 +179,27 @@ int PtxReader::ReadPoints(vector<float>& ax, vector<float>& ay, vector<float>& a
 
 std::string PtxReader::GetScanName()
 {
-  fs::path filename(mFilename.c_str());
+  fs::path filename(mpImpl->mFilename.c_str());
   //string fn = filename.stem();
   return "";
 }
 
-int PtxReader::ReadPoints(int subample, int columns, int rows,
-                          ScanPointCallback cb)
+int PtxReader::ReadPoints(int subsample, ScanPointCallback cb)
 {
-  mSubsample = subample;
+  return mpImpl->ReadPoints(subsample, cb);
+}
 
-  if (columns  == 0 || rows == 0)
-  {
-    return true;
-  }
+int PtxReader::Impl::ReadPoints(int subsample, ScanPointCallback cb)
+{
+  mSubsample = subsample;
   const int ReportCount = 100;
   bool ok = true;
-  for (int col = 0; col < columns && ok; col++)
+  for (int col = 0; col < mColumns && ok; col++)
   {
     string line;
     if (col % ReportCount == 0)
     {
-      printf("%.2f%%\r", (float)col / columns);
+      printf("%.2f%%\r", (float)col / mColumns);
     }
     const int ReportCount = 100;
     bool bSkipColumn = (col % mSubsample) != 0;
@@ -190,7 +215,66 @@ int PtxReader::ReadPoints(int subample, int columns, int rows,
     {
       break;
     }
-    ok = HasMoredata();
+    mPointCount += np;
+    ok = !feof(mFile);
   }
   return ok;
 }
+
+bool PtxReader::Impl::ProcessScan(int subample)
+{
+
+  auto ExportLambda = [&](int np, float * x,
+                          float * y, float * z,
+                          float * pIntensity,
+                          int* rgbColor)->bool
+  {
+    size_t size = mX.size();
+    mX.resize(size + np);
+    mY.resize(size + np);
+    mZ.resize(size + np);
+    mIntensity.resize(size + np);
+    //todo apply transformation
+    memcpy(mX.data() + size, x, sizeof(float)* np);
+    memcpy(mY.data() + size, y, sizeof(float)* np);
+    memcpy(mZ.data() + size, z, sizeof(float)* np);
+    memcpy(mIntensity.data() + size, pIntensity, sizeof(float)* np);
+    if (rgbColor)
+    {
+      mColors.resize(size + np);
+      memcpy(mColors.data() + size, rgbColor, sizeof(int)* np);
+    }
+    return true;
+  };
+  return ReadPoints(subample, ExportLambda);
+}
+
+size_t
+PtxReader::Load(int subample, float*& x, float*& y, float*& z,
+                float*& intensity, int*& color)
+{
+  while (HasMoredata())
+  {
+    int columns, rows;
+    if (false == ReadSize(columns, rows))
+    {
+      break;
+    }
+    double scannerMatrix3x4[12];
+    double ucs[16];
+    ReadHeader(scannerMatrix3x4, ucs);
+    if (false == mpImpl->ProcessScan(subample))
+    {
+      break;
+    }
+  }
+  x = mpImpl->mX.data();
+  y = mpImpl->mY.data();
+  z = mpImpl->mZ.data();
+  intensity = mpImpl->mIntensity.data();
+  color = mpImpl->mColors.data();
+  return mpImpl->mX.size();
+}
+
+__int64 PtxReader::GetPointCount() { return mpImpl-> mPointCount; }
+int PtxReader::GetNumScan() { return mpImpl->mNumScan; }
