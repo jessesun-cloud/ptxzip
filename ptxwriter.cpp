@@ -6,7 +6,6 @@ PtxWriter::PtxWriter()
 {
   mPosPrecision = 3;
   mIntensityPrecision = 3;
-  mSubsample = 1;
   mFormat = -1;
 }
 
@@ -17,11 +16,10 @@ PtxWriter::~PtxWriter()
 }
 
 void
-PtxWriter::Init(int posPrecision, int intensityPrecision, int subsample)
+PtxWriter::Init(int posPrecision, int intensityPrecision)
 {
   mPosPrecision = posPrecision;
   mIntensityPrecision = intensityPrecision;
-  mSubsample = subsample;
 }
 
 void PtxWriter::WriteSize(int cols, int rows)
@@ -125,8 +123,6 @@ PtxWriter::WritePoints(int numPoint, float* x, float* y, float* z,
 
   for (int i = 0; i < numPoint; i++)
   {
-    if (i % mSubsample != 0)
-    { continue; }
     int c = mFormat == 7 ? rgbColor[i] : 0;
     WritePoint(x[i], y[i], z[i], rIntensity ? rIntensity[i] : 0.5f,
                c & 0xff, (c >> 8) & 0xff, (c >> 16) & 0xff);

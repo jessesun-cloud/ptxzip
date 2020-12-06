@@ -77,7 +77,7 @@ int ProcessConvert()
   PtxReader ptxReader(input.c_str());
   PtxWriter ptxwriter;
 
-  ptxwriter.Init(posPrecision, intensityPrecision, subsample);
+  ptxwriter.Init(posPrecision, intensityPrecision);
   if (ptxwriter.Open(output.c_str()) == false)
   {
     printf("can not create file %s", output.c_str());

@@ -10,7 +10,7 @@ class PtxWriter
 public:
   PtxWriter();
   ~PtxWriter();
-  void Init(int posPrecision, int intensityPrecision, int subsample);
+  void Init(int posPrecision, int intensityPrecision);
   void WriteSize(int col, int rows);
   bool Open(const char* pFilename);
   void WriteHeader(double scannerPos[12],  double ucs[16]);
@@ -23,7 +23,7 @@ private:
   void InitExportFormat();
   FILE* mFile;
   string mFilename;
-  int mPosPrecision, mIntensityPrecision, mSubsample;
+  int mPosPrecision, mIntensityPrecision;
   int mFormat;
   string mCoordFormat;
   string mIntensityFormat;
