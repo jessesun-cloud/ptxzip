@@ -34,7 +34,7 @@ RenderableScan::RenderableScan()
 ScanNode::ScanNode()
 {
   mMinCoord = Vector3f(FLT_MAX, FLT_MAX, FLT_MAX);
-  mMaxCoord = Vector3f(FLT_MIN, FLT_MIN, FLT_MIN);
+  mMaxCoord = Vector3f(-FLT_MAX, -FLT_MAX, -FLT_MAX);
 }
 
 void ScanNode::SetName(const char* pScanName)
