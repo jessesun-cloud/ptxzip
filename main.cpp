@@ -2,7 +2,7 @@
 #include <inc/ptxwriter.hpp>
 
 std::string input, output;
-int posPrecision = 3, intensityPrecision = 3, subsample = 1;
+int posPrecision = 4, intensityPrecision = 3, subsample = 1;
 
 void printusage()
 {
