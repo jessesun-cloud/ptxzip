@@ -1,6 +1,6 @@
 #pragma once
 
-#include <inc/IScanInterface.hpp>
+#include <IScanInterface.hpp>
 #include <string>
 
 #define MAXLINELENTH 200

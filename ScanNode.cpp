@@ -73,3 +73,9 @@ void ScanNode::ComputeBBox(int np, float* xyz)
 }
 
 void ScanNode::Finish() {}
+
+void ScanNode::GetBox(double minCorner[3], double maxCorner[3])
+{
+  memcpy(minCorner, mMinCoord.data(), 12);
+  memcpy(maxCorner, mMaxCoord.data(), 12);
+}
