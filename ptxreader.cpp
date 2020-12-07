@@ -25,7 +25,7 @@ struct PtxReader::Impl
   int ReadPoints(vector<float>& pos,
                  vector<float>& rIntensity, vector<int>& rgbColor);
   bool ReadLine(std::string& rLine);
-  bool ReadSize(int& columns, int& rows);
+  bool GetSize();
 };
 
 PtxReader::PtxReader(const char* pFilename)
@@ -47,15 +47,27 @@ PtxReader::~PtxReader()
   mpImpl = nullptr;
 }
 
-bool
-PtxReader::ReadSize(int& column, int& row)
+bool PtxReader::MoveNextScan()
 {
-  return mpImpl->ReadSize(column, row);
+  return mpImpl->GetSize();
 }
 
 bool
-PtxReader::Impl::ReadSize(int& column, int& row)
+PtxReader::GetSize(int& column, int& row)
 {
+  if (feof(mpImpl->mFile))
+  {
+    return false;
+  }
+  column = mpImpl->mColumns;
+  row = mpImpl->mRows;
+  return column * row > 0;
+}
+
+bool
+PtxReader::Impl::GetSize()
+{
+  int column, row;
   column = row = 0;
   mBuffer[0] = 0;
   if (feof(mFile))
@@ -217,7 +229,8 @@ bool PtxReader::LoadScan(int subsample, vector< shared_ptr<ScanNode>>& rNodes)
   while (true)
   {
     int columns, rows;
-    if (false == ReadSize(columns, rows))
+    MoveNextScan();
+    if (false == GetSize(columns, rows))
     {
       return false;
     }

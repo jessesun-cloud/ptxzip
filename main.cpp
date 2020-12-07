@@ -47,8 +47,9 @@ int SubSampledSize(int size, int subSample)
 
 bool ProcessScan(int subample, PtxReader& ptxreader, PtxWriter& ptxwriter)
 {
+  ptxreader.MoveNextScan();
   int columns, rows;
-  if (false == ptxreader.ReadSize(columns, rows))
+  if (false == ptxreader.GetSize(columns, rows))
   {
     return false;
   }

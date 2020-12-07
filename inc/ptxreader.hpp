@@ -12,7 +12,8 @@ public:
   PtxReader(const char* pFilename);
   ~PtxReader();
 
-  bool ReadSize(int& columns, int& rows);
+  bool MoveNextScan();
+  bool GetSize(int& columns, int& rows);
   bool GetHeader(double scannerMatrix3x4[12], double ucs[16]);
   std::string GetScanName();
   __int64 GetPointCount();
