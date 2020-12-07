@@ -45,6 +45,10 @@ public:
     return mXyz;
   }
   std::vector <float>& Intensity() { return mIntensity; }
+  std::vector <int>& Color()
+  {
+    return mColor;
+  }
   void GetBox(double* minCorner, double* maxCorner);
   Eigen::Matrix4d Transformation() { return mTransformation; }
   std::string ScanName() { return mScanName; }

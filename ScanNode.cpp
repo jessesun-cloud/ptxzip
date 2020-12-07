@@ -76,6 +76,9 @@ void ScanNode::Finish() {}
 
 void ScanNode::GetBox(double minCorner[3], double maxCorner[3])
 {
-  memcpy(minCorner, mMinCoord.data(), 12);
-  memcpy(maxCorner, mMaxCoord.data(), 12);
+  for (int i = 0; i < 3; i++)
+  {
+    minCorner[i] = mMinCoord[i];
+    maxCorner[i] = mMaxCoord[i];
+  }
 }
