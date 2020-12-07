@@ -57,7 +57,7 @@ bool ProcessScan(int subample, PtxReader& ptxreader, PtxWriter& ptxwriter)
                       SubSampledSize(rows, subsample));
   double scannerMatrix3x4[12];
   double ucs[16];
-  if (ptxreader.ReadHeader(scannerMatrix3x4, ucs))
+  if (ptxreader.GetHeader(scannerMatrix3x4, ucs))
   {
     ptxwriter.WriteHeader(scannerMatrix3x4, ucs);
   }

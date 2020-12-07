@@ -74,7 +74,7 @@ PtxReader::Impl::ReadSize(int& column, int& row)
   return success;
 }
 
-bool PtxReader::ReadHeader(vector<string>& rHeader)
+bool PtxReader::GetHeader(vector<string>& rHeader)
 {
   rHeader.clear();
   if (mpImpl->mFile == nullptr)
@@ -98,11 +98,11 @@ bool PtxReader::Impl::ReadLine(string& rLine)
   return ret;
 }
 
-bool PtxReader::ReadHeader(double scannerMatrix3x4[12], double ucs[16])
+bool PtxReader::GetHeader(double scannerMatrix3x4[12], double ucs[16])
 {
   int pos = 0;
   vector<std::string> header;
-  if (false == ReadHeader(header))
+  if (false == GetHeader(header))
   { return false; }
   for (int i = 0; i < 4; i++)
   {
@@ -212,7 +212,7 @@ int PtxReader::Impl::ReadPoints(int subsample, ScanPointCallback cb)
 __int64 PtxReader::GetPointCount() { return mpImpl->mPointCount; }
 int PtxReader::GetNumScan() { return mpImpl->mNumScan; }
 
-bool PtxReader::LoadScan(int subample, vector< shared_ptr<ScanNode>>& rNodes)
+bool PtxReader::LoadScan(int subsample, vector< shared_ptr<ScanNode>>& rNodes)
 {
   while (true)
   {
@@ -224,7 +224,7 @@ bool PtxReader::LoadScan(int subample, vector< shared_ptr<ScanNode>>& rNodes)
     ScanNode* pNode = new ScanNode;
     double scannerMatrix3x4[12];
     double ucs[16];
-    ReadHeader(scannerMatrix3x4, ucs);
+    GetHeader(scannerMatrix3x4, ucs);
     pNode->SetName(GetScanName().c_str());
     pNode->SetMatrix(scannerMatrix3x4, ucs);
     auto ExportLambda = [&](int np, float * x,
@@ -233,7 +233,7 @@ bool PtxReader::LoadScan(int subample, vector< shared_ptr<ScanNode>>& rNodes)
     {
       pNode->Add(np, x, pIntensity, rgbColor);
     };
-    ReadPoints(subample, ExportLambda);
+    ReadPoints(subsample, ExportLambda);
     shared_ptr<ScanNode> scan(pNode);
     rNodes.push_back(scan);
   }
