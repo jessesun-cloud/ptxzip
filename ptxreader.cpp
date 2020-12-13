@@ -150,7 +150,7 @@ int PtxReader::Impl::ReadPoints(vector<float>& rPos,
       {
         continue;
       }
-      float x, y, z, i = 0;
+      float x, y, z, i = 0.5;
       int r, g, b;
       int num = sscanf_s(line.c_str(), "%f %f %f %f %d %d %d",
                          &x, &y, &z, &i, &r, &g, &b);
