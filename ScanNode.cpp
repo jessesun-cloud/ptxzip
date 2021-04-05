@@ -47,8 +47,9 @@ void ScanNode::Add(int np, float* xyz, float* pIntensity, int* rgbColor)
   size_t size = mXyz.size();
   mXyz.resize(size + np * 3);
   memcpy(mXyz.data() + size, xyz, sizeof(float) * np * 3);
-  mIntensity.resize(size + np);
-  memcpy(mIntensity.data() + size, pIntensity, sizeof(float) * np);
+  mIntensity.resize(size + np, 0.5);
+  if (pIntensity)
+    memcpy(mIntensity.data() + size, pIntensity, sizeof(float) * np);
 
   if (rgbColor)
   {
